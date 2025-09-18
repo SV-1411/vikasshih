@@ -1,0 +1,21 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY server/package*.json ./
+RUN npm ci
+
+# Copy server source
+COPY server/ .
+
+# Create uploads directory
+RUN mkdir -p uploads
+
+# Set permissions
+RUN chown -R node:node /app
+USER node
+
+EXPOSE 3001
+
+CMD ["npm", "start"]
