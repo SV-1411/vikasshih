@@ -29,6 +29,7 @@
     "i18next": "^25.5.2",
     "lucide-react": "^0.344.0",
     "multer": "^2.0.2",
+    "ogl": "^1.0.11",
     "pouchdb-adapter-idb": "^9.0.0",
     "pouchdb-browser": "^9.0.0",
     "pouchdb-find": "^9.0.0",

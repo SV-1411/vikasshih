@@ -3,6 +3,7 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { Link } from 'react-router-dom';
 import { BookOpen, ArrowRightCircle, ChevronLeft, ChevronRight, School, GraduationCap, Video, Menu, X } from 'lucide-react';
+import Threads from './Threads';
 import DemoAccess from './DemoAccess';
 
 const testimonials = [
@@ -33,19 +34,19 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* NAV */}
-      <header className="bg-white shadow-sm sticky top-0 z-20">
+      <header className="bg-gradient-to-b from-white/80 via-white/70 to-white/30 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm sticky top-0 z-20">
         <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
           <Link to="/" className="flex items-center space-x-2 text-2xl font-bold text-blue-600">
             <BookOpen size={28} /> <span>Vikas</span>
           </Link>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex space-x-6 text-sm font-medium">
-            <Link to="/about" className="hover:text-blue-600">About</Link>
+          <div className="hidden md:flex items-center space-x-6 text-sm font-semibold">
+            <Link to="/about" className="relative text-gray-500 hover:text-fuchsia-500 transition-colors after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-0 after:bg-fuchsia-500 after:transition-all hover:after:w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-500">About</Link>
             
             {/* Login Dropdown */}
             <div className="relative group">
-              <button className="hover:text-blue-600 flex items-center space-x-1">
+              <button className="hover:text-fuchsia-500 text-gray-500 flex items-center space-x-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-500 transition-colors">
                 <span>Login</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -61,7 +62,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <Link to="/register-user" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-1">
+            <Link to="/register-user" className="px-7 py-3 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-full shadow-xl hover:shadow-2xl hover:-translate-y-1 active:scale-95 transform transition-all duration-150 text-lg">
               <span>Join Free</span>
               <ArrowRightCircle size={16} />
             </Link>
@@ -69,7 +70,7 @@ export default function LandingPage() {
 
           {/* Mobile Menu Button */}
           <button 
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+            className="md:hidden p-2 rounded-lg hover:bg-blue-50 text-indigo-600"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -117,29 +118,33 @@ export default function LandingPage() {
       </header>
 
       {/* HERO */}
-      <section className="relative overflow-hidden text-white py-28 md:py-36" data-aos="fade-up">
+      <section className="relative overflow-hidden text-white min-h-screen flex items-center" data-aos="fade-up">
         {/* Background */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-700" />
-          <div className="absolute -top-20 -right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-yellow-400/10 rounded-full blur-3xl" />
-          <svg className="absolute inset-x-0 bottom-0 -mb-20 w-full opacity-20" viewBox="0 0 1440 320" preserveAspectRatio="none">
-            <path fill="currentColor" d="M0,96L60,112C120,128,240,160,360,176C480,192,600,192,720,202.7C840,213,960,235,1080,240C1200,245,1320,235,1380,229.3L1440,224L1440,320L1380,320C1320,320,1200,320,1080,320C960,320,840,320,720,320C600,320,480,320,360,320C240,320,120,320,60,320L0,320Z" />
-          </svg>
+        {/* Dark gradient background */}
+        <div className="absolute inset-0 -z-20">
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 animate-gradient-x" />
         </div>
 
-        <div className="container mx-auto px-6 text-center max-w-5xl">
+        {/* Threads full overlay */}
+        <div className="absolute inset-0 -z-10 pointer-events-none opacity-90">
+          <Threads color={[1,1,1]} amplitude={1.2} distance={0.5} enableMouseInteraction={false} />
+        </div>
+        <svg className="absolute inset-x-0 bottom-0 -mb-20 w-full opacity-10 -z-10" viewBox="0 0 1440 320" preserveAspectRatio="none">
+            <path fill="currentColor" d="M0,96L60,112C120,128,240,160,360,176C480,192,600,192,720,202.7C840,213,960,235,1080,240C1200,245,1320,235,1380,229.3L1440,224L1440,320L1380,320C1320,320,1200,320,1080,320C960,320,840,320,720,320C600,320,480,320,360,320C240,320,120,320,60,320L0,320Z" />
+          </svg>
+
+        <div className="container mx-auto px-6 text-center max-w-5xl relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-sm mb-6">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
             Built for low-bandwidth colleges • Works offline-first
           </div>
-          <h1 className="text-5xl md:text-7xl font-extrabold leading-tight mb-6 drop-shadow-lg">
+          <h1 className="relative z-10 text-5xl md:text-7xl font-extrabold leading-tight mb-6 drop-shadow-lg">
             Modern Learning Platform for <span className="underline decoration-wavy decoration-yellow-400">Colleges</span>
           </h1>
-          <p className="text-lg md:text-2xl mb-10 opacity-95 max-w-3xl mx-auto">
+          <p className="relative z-10 text-lg md:text-2xl mb-10 opacity-95 max-w-3xl mx-auto">
             Live slides, interactive assessments, and classroom collaboration that stay smooth on slow internet — so every campus can teach without limits.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="relative z-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link to="/register-college" className="inline-block px-8 py-3 bg-yellow-400 text-blue-900 font-semibold rounded-lg shadow-lg hover:bg-yellow-300">
               Register Your College
             </Link>
