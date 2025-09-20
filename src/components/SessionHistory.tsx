@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Download, Calendar, Clock, Users, Presentation, FileText, ChevronDown, ChevronUp, Mic, Play, Pause } from 'lucide-react';
 import { SessionRecorder, SessionRecording } from '../lib/session-recorder';
 import { initializeDemoSessions } from '../lib/demo-sessions';
@@ -13,6 +13,10 @@ export default function SessionHistory({ currentUser }: SessionHistoryProps) {
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [playingAudio, setPlayingAudio] = useState<string | null>(null);
+  const [demoAudioPlayer, setDemoAudioPlayer] = useState<{ recording: SessionRecording; isVisible: boolean } | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
     loadRecordings();
@@ -74,6 +78,50 @@ export default function SessionHistory({ currentUser }: SessionHistoryProps) {
     setExpandedSession(expandedSession === sessionId ? null : sessionId);
   };
 
+  // Audio player functions
+  const handleLoadAudio = () => {
+    const all = SessionRecorder.getAllRecordings();
+    if (all && all.length > 0) {
+      const audioRecording = all.find(r => r.audioRecording);
+      if (audioRecording) {
+        setDemoAudioPlayer({ recording: audioRecording, isVisible: true });
+        setDuration(audioRecording.audioRecording!.duration);
+      }
+    }
+  };
+
+  const handlePlayAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.play();
+    }
+  };
+
+  const handlePauseAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
+    }
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (audioRef.current) {
+      const newTime = (parseFloat(e.target.value) / 100) * duration;
+      audioRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   if (loading) {
     return (
       <div className="p-8 text-center">
@@ -96,6 +144,7 @@ export default function SessionHistory({ currentUser }: SessionHistoryProps) {
           onClick={() => {
             initializeDemoSessions();
             loadRecordings();
+            handleLoadAudio();
             // Also trigger an immediate demo slides download for convenience
             const all = SessionRecorder.getAllRecordings();
             if (all && all.length > 0) {
@@ -107,6 +156,82 @@ export default function SessionHistory({ currentUser }: SessionHistoryProps) {
           <Download className="w-4 h-4 mr-2" />
           Load Demo Sessions
         </button>
+
+        {/* Demo Audio Player */}
+        {demoAudioPlayer && demoAudioPlayer.isVisible && demoAudioPlayer.recording.audioRecording && (
+          <div className="mt-8 p-6 bg-white rounded-xl border border-gray-200 shadow-lg">
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">🎵 Demo Audio Player</h3>
+              <p className="text-gray-600">Listen to the demo lecture recording with slider controls</p>
+            </div>
+
+            <div className="max-w-md mx-auto">
+              {/* Audio Element */}
+              <audio
+                ref={audioRef}
+                onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={() => {
+                  if (audioRef.current) {
+                    setDuration(audioRef.current.duration);
+                  }
+                }}
+                className="hidden"
+              >
+                <source
+                  src={URL.createObjectURL(demoAudioPlayer.recording.audioRecording.blob)}
+                  type={`audio/${demoAudioPlayer.recording.audioRecording.format === 'opus' ? 'webm' : demoAudioPlayer.recording.audioRecording.format}`}
+                />
+                Your browser does not support the audio element.
+              </audio>
+
+              {/* Progress Bar */}
+              <div className="mb-4">
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={duration > 0 ? (currentTime / duration) * 100 : 0}
+                  onChange={handleSeek}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                  style={{
+                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(currentTime / duration) * 100}%, #e5e7eb ${(currentTime / duration) * 100}%, #e5e7eb 100%)`
+                  }}
+                />
+              </div>
+
+              {/* Time Display */}
+              <div className="flex justify-between text-sm text-gray-500 mb-4">
+                <span>{formatTime(currentTime)}</span>
+                <span>{formatTime(duration)}</span>
+              </div>
+
+              {/* Controls */}
+              <div className="flex items-center justify-center space-x-4">
+                <button
+                  onClick={handlePlayAudio}
+                  className="p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-lg"
+                  title="Play"
+                >
+                  <Play className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={handlePauseAudio}
+                  className="p-3 bg-gray-600 text-white rounded-full hover:bg-gray-700 transition-colors shadow-lg"
+                  title="Pause"
+                >
+                  <Pause className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Audio Info */}
+              <div className="mt-4 text-center text-sm text-gray-600">
+                <p><strong>Format:</strong> {demoAudioPlayer.recording.audioRecording.format.toUpperCase()}</p>
+                <p><strong>Duration:</strong> {Math.floor(demoAudioPlayer.recording.audioRecording.duration / 60)}:{(demoAudioPlayer.recording.audioRecording.duration % 60).toString().padStart(2, '0')}</p>
+                <p><strong>Size:</strong> {(demoAudioPlayer.recording.audioRecording.size / 1024 / 1024).toFixed(2)} MB</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

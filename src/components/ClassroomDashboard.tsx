@@ -676,8 +676,7 @@ const ClassroomDashboard: React.FC<ClassroomDashboardProps> = ({ currentUser, on
                           </div>
 
                           <div className="flex items-center text-amber-600 group-hover:text-amber-700">
-                            <span className="text-base font-semibold">Enter Classroom</span>
-                            <svg className="w-5 h-5 ml-3 transform group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg onClick={() => setSelectedClassroom(classroom)} className="w-5 h-5 ml-3 transform group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
                           </div>
