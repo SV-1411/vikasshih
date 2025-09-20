@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Play, BookOpen, Award, Flame, Star, Users, Settings, Brain, Timer } from 'lucide-react';
 import SkillTree from './SkillTree';
 import LessonView from './LessonView';
@@ -6,7 +6,9 @@ import OfflineTestTaker from './OfflineTestTaker';
 import AdaptiveLearningPath from './AdaptiveLearningPath';
 import TeacherConnection from './TeacherConnection';
 import PomodoroFocus from './PomodoroFocus';
-import { Course, Module, Lesson, UserProgress } from '../types';
+import QuickMeaning from './QuickMeaning';
+import LiveSlidesViewer from './LiveSlidesViewer';
+import { Course, Lesson, UserProgress } from '../types';
 import { db } from '../lib/database';
 import { auth } from '../lib/auth';
 
@@ -25,26 +27,48 @@ export default function StudentDashboard({ onLogout }: StudentDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [connectedTeachers, setConnectedTeachers] = useState<any[]>([]);
+  const [liveLectures, setLiveLectures] = useState<any[]>([]);
+  const [viewerLectureId, setViewerLectureId] = useState<string | null>(null);
 
   const user = auth.getCurrentUser();
+
+  // Load currently live lectures (demo/local mode)
+  const loadLiveLectures = () => {
+    try {
+      const demoLecturesRaw = localStorage.getItem('demo_live_lectures');
+      const sessions = demoLecturesRaw ? JSON.parse(demoLecturesRaw) : [];
+      const active = sessions.filter((s: any) => s.status === 'live');
+      setLiveLectures(active);
+    } catch (e) {
+      console.warn('Failed to load live lectures:', e);
+      setLiveLectures([]);
+    }
+  };
 
   useEffect(() => {
     loadInitialData();
     loadConnectedTeachers();
+    loadLiveLectures();
     
     // Listen for online/offline events
     const handleOnline = () => {
       setIsOnline(true);
       syncOfflineData();
     };
+
     const handleOffline = () => setIsOnline(false);
     
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'demo_live_lectures') loadLiveLectures();
+    };
+    window.addEventListener('storage', onStorage);
     
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('storage', onStorage);
     };
   }, []);
 
@@ -117,6 +141,7 @@ export default function StudentDashboard({ onLogout }: StudentDashboardProps) {
 
   const getCurrentProgress = (courseId: string): UserProgress => {
     return userProgress.find(p => p.course_id === courseId) || {
+      id: `user_progress_${user?.id || 'anon'}_${courseId}`,
       user_id: user?.id || '',
       course_id: courseId,
       total_xp: 0,
@@ -133,7 +158,7 @@ export default function StudentDashboard({ onLogout }: StudentDashboardProps) {
     setView('course');
   };
 
-  const handleSkillNodeClick = async (nodeId: string) => {
+  const handleSkillNodeClick = async (_nodeId: string) => {
     if (!selectedCourse) return;
     
     // In a real app, this would navigate to specific lessons for that skill
@@ -509,13 +534,41 @@ export default function StudentDashboard({ onLogout }: StudentDashboardProps) {
           </div>
         </div>
 
+        {/* Instant Help: Quick Meaning */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Instant Help</h2>
+          <QuickMeaning isOnline={isOnline} />
+        </div>
+
+        {/* Live Lectures (Live Slides) */}
+        {liveLectures.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Live Lectures</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {liveLectures.map((lec: any) => (
+                <div key={lec.id} className="bg-white rounded-lg shadow-sm p-4 flex items-center justify-between">
+                  <div>
+                    <div className="font-semibold text-gray-900">{lec.title || 'Live Slides Session'}</div>
+                    <div className="text-xs text-gray-500">Started {new Date(lec.scheduled_at).toLocaleTimeString()}</div>
+                  </div>
+                  <button
+                    onClick={() => setViewerLectureId(lec.id)}
+                    className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                  >
+                    Join
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Available Courses */}
         <div>
           <h2 className="text-xl font-semibold text-gray-800 mb-6">
             {learningMode === 'teacher_content' ? 'Teacher Courses' : 
              learningMode === 'adaptive' ? 'Recommended Courses' : 'Your Courses'}
           </h2>
-          
           {courses.length === 0 ? (
             <div className="bg-white rounded-lg shadow-sm p-12 text-center">
               <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -539,7 +592,6 @@ export default function StudentDashboard({ onLogout }: StudentDashboardProps) {
               {courses.map((course) => {
                 const progress = getCurrentProgress(course.id);
                 const completionRate = progress.completed_lessons.length > 0 ? 75 : 0; // Mock calculation
-                
                 return (
                   <div 
                     key={course.id}
@@ -549,35 +601,24 @@ export default function StudentDashboard({ onLogout }: StudentDashboardProps) {
                     <div className="p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                            {course.title}
-                          </h3>
-                          <p className="text-sm text-gray-600 line-clamp-2">
-                            {course.description}
-                          </p>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-1">{course.title}</h3>
+                          <p className="text-sm text-gray-600 line-clamp-2">{course.description}</p>
                         </div>
                         <Play className="w-5 h-5 text-blue-500 flex-shrink-0 mt-1" />
                       </div>
-                      
                       <div className="space-y-3">
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Progress</span>
                           <span className="font-medium">{completionRate}%</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-blue-500 h-2 rounded-full" 
-                            style={{ width: `${completionRate}%` }}
-                          />
+                          <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${completionRate}%` }} />
                         </div>
-                        
                         <div className="flex items-center justify-between text-sm text-gray-600">
                           <span>Level {progress.current_level}</span>
                           <span>{progress.total_xp} XP</span>
                           {learningMode === 'mixed' && (
-                            <span className="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded">
-                              Mixed
-                            </span>
+                            <span className="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded">Mixed</span>
                           )}
                         </div>
                       </div>
@@ -589,6 +630,21 @@ export default function StudentDashboard({ onLogout }: StudentDashboardProps) {
           )}
         </div>
       </div>
+
+      {/* Live Slides Viewer Modal */}
+      {viewerLectureId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-5xl h-[80vh] overflow-hidden">
+            <div className="flex items-center justify-between p-3 border-b">
+              <div className="font-semibold">Live Slides</div>
+              <button onClick={() => setViewerLectureId(null)} className="px-3 py-1 border rounded text-sm">Close</button>
+            </div>
+            <div className="h-[calc(80vh-48px)]">
+              <LiveSlidesViewer lectureId={viewerLectureId} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  );
+);
 }

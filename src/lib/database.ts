@@ -81,6 +81,12 @@ class Database {
       case 'update_user_progress':
         await this.syncUserProgressToSupabase(item.data);
         break;
+      case 'create_college':
+        await this.syncCollegeToSupabase(item.data);
+        break;
+      case 'create_user':
+        await this.syncUserToSupabase(item.data);
+        break;
       default:
         console.warn('Unknown queue action:', item.action);
     }
@@ -1034,6 +1040,53 @@ class Database {
       if (error.name !== 'conflict') {
         console.error('Failed to create indexes:', error);
       }
+    }
+  }
+
+  // ------------------ NEW SYNC HELPERS ------------------
+  private async syncCollegeToSupabase(payload: any) {
+    if (!supabase) return;
+    const { college, adminProfile, password } = payload;
+    try {
+      // ensure admin in auth
+      const { data: existing } = await supabase.from('profiles').select('id').eq('id', adminProfile.id).single();
+      if (!existing) {
+        await supabase.auth.signUp({
+          email: adminProfile.username,
+          password: password || 'ChangeMe123!',
+          options: { data: { role: 'admin', full_name: adminProfile.full_name, college_id: null } }
+        });
+      }
+      await supabase.from('colleges').upsert({
+        id: college.id,
+        name: college.name,
+        code: college.code,
+        address: college.address,
+        contact_email: college.contact_email,
+        contact_phone: college.contact_phone,
+        admin_id: adminProfile.id,
+        created_at: college.created_at,
+        updated_at: college.updated_at
+      });
+    } catch (e) {
+      console.error('Failed to sync college:', e);
+    }
+  }
+
+  private async syncUserToSupabase(payload: any) {
+    if (!supabase) return;
+    const { userProfile, password } = payload;
+    try {
+      const { data: existing } = await supabase.from('profiles').select('id').eq('id', userProfile.id).single();
+      if (!existing) {
+        await supabase.auth.signUp({
+          email: userProfile.username,
+          password: password || 'ChangeMe123!',
+          options: { data: { role: userProfile.role, full_name: userProfile.full_name, college_id: userProfile.college_id, phone: userProfile.phone } }
+        });
+      }
+    } catch (e) {
+      console.error('Failed to sync user:', e);
     }
   }
 }

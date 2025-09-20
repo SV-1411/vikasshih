@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Upload, Users, BarChart3, Settings, BookOpen, Mic, Play, Video, FileText } from 'lucide-react';
-import { Course, Module, Lesson, User } from '../types';
+import { useState, useEffect } from 'react';
+import { Plus, Upload, Users, Settings, BookOpen, Mic, Video } from 'lucide-react';
+import { Course, Module, Lesson } from '../types';
 import { db } from '../lib/database';
 import { auth } from '../lib/auth';
 import { v4 as uuidv4 } from 'uuid';
+import QuickMeaning from './QuickMeaning';
 
 interface TeacherDashboardProps {
   onLogout: () => void;
@@ -52,8 +53,8 @@ export default function TeacherDashboard({ onLogout }: TeacherDashboardProps) {
   const loadConnectedStudents = async () => {
     if (!user) return;
     try {
-      const students = await db.getStudentsByTeacher(user.id);
-      setConnectedStudents(students);
+      const list = await db.getStudentsByTeacher(user.id);
+      setConnectedStudents(list);
     } catch (error) {
       console.error('Failed to load connected students:', error);
     }
@@ -75,7 +76,7 @@ export default function TeacherDashboard({ onLogout }: TeacherDashboardProps) {
       language: 'en',
       version: '1.0.0',
       channel_id: `channel_${uuidv4()}`,
-      created_at: new Date().toISOString(),
+      created_by: user.id,
       updated_at: new Date().toISOString()
     };
 
@@ -529,6 +530,12 @@ export default function TeacherDashboard({ onLogout }: TeacherDashboardProps) {
           </div>
         </div>
 
+        {/* Instant Help: Quick Meaning */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Instant Help</h2>
+          <QuickMeaning />
+        </div>
+
         {/* Courses */}
         <div>
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Your Courses</h2>
@@ -572,9 +579,7 @@ export default function TeacherDashboard({ onLogout }: TeacherDashboardProps) {
                     <div className="flex items-center justify-between text-sm text-gray-600">
                       <span>Version {course.version}</span>
                       <span>{course.language.toUpperCase()}</span>
-                      <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
-                        {course.type || 'Course'}
-                      </span>
+                      <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Course</span>
                     </div>
                   </div>
                 </div>

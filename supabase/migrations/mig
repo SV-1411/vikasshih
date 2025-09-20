@@ -1,0 +1,16 @@
+-- 1️⃣  allow an authenticated user whose uid will be the college admin
+--     to INSERT a row into `colleges` where admin_id = auth.uid()
+CREATE POLICY "Admins can create colleges"
+  ON colleges
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (admin_id = auth.uid());
+
+-- 2️⃣  (optional) if you want *anyone* authenticated to read colleges:
+--     this policy exists in 20250918195500_add_colleges_select_anon.sql,
+--     but run it again if it never got applied
+CREATE POLICY "Anyone can read colleges"
+  ON colleges
+  FOR SELECT
+  TO authenticated
+  USING (true);ok
