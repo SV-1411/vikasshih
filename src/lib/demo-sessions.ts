@@ -6,6 +6,17 @@ import { safeLocalStorage } from './error-utils';
 import { demoSlides } from './demo-slides';
 import type { SessionRecording } from './session-recorder';
 
+// Create a demo audio blob (silent audio for demo purposes)
+function createDemoAudioBlob(): Blob {
+  // Create a simple silent audio blob (WebM format)
+  const audioData = new Uint8Array([
+    0x1a, 0x45, 0xdf, 0xa3, 0x9f, 0x42, 0x86, 0x81, 0x01, 0x42, 0xf7, 0x81, 0x01, 0x42, 0xf2, 0x81,
+    0x04, 0x42, 0xf3, 0x81, 0x08, 0x42, 0x82, 0x84, 0x77, 0x65, 0x62, 0x6d, 0x42, 0x87, 0x81, 0x02,
+    0x42, 0x85, 0x81, 0x02, 0x18, 0x53, 0x80, 0x67, 0x01, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+  ]);
+  return new Blob([audioData], { type: 'audio/webm;codecs=opus' });
+}
+
 export function initializeDemoSessions() {
   const existingRecordings = safeLocalStorage.getJSON<SessionRecording[]>('demo_session_recordings', []);
   
@@ -28,6 +39,12 @@ export function initializeDemoSessions() {
         endTime: new Date(yesterday.getTime() + 45 * 60 * 1000).toISOString(), // 45 minutes
         duration: 45,
         slides: demoSlides,
+        audioRecording: {
+          blob: createDemoAudioBlob(),
+          duration: 2700, // 45 minutes in seconds
+          format: 'opus' as const,
+          size: 1024 * 1024 * 2.5 // 2.5 MB
+        },
         participants: [
           {
             id: 'teacher_demo_1',
@@ -116,6 +133,12 @@ export function initializeDemoSessions() {
         endTime: new Date(twoDaysAgo.getTime() + 60 * 60 * 1000).toISOString(), // 60 minutes
         duration: 60,
         slides: demoSlides.slice(0, 4), // First 4 slides
+        audioRecording: {
+          blob: createDemoAudioBlob(),
+          duration: 3600, // 60 minutes in seconds
+          format: 'webm' as const,
+          size: 1024 * 1024 * 4.2 // 4.2 MB
+        },
         participants: [
           {
             id: 'teacher_demo_1',

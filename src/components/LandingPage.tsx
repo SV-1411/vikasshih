@@ -32,7 +32,7 @@ export default function LandingPage() {
   const prev = () => setIndex((index - 1 + testimonials.length) % testimonials.length);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-black-50">
       {/* NAV */}
       <header className="bg-gradient-to-b from-white/80 via-white/70 to-white/30 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm sticky top-0 z-20">
         <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -42,11 +42,11 @@ export default function LandingPage() {
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6 text-sm font-semibold">
-            <Link to="/about" className="relative text-gray-500 hover:text-fuchsia-500 transition-colors after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-0 after:bg-fuchsia-500 after:transition-all hover:after:w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-500">About</Link>
+            <Link to="/about" className="relative text-gray-500 hover:text-blue-500 transition-colors after:absolute after:-bottom-1 after:left-0 after:h-0.5 after:w-0 after:bg-fuchsia-500 after:transition-all hover:after:w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-500">About</Link>
             
             {/* Login Dropdown */}
             <div className="relative group">
-              <button className="hover:text-fuchsia-500 text-gray-500 flex items-center space-x-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-500 transition-colors">
+              <button className="hover:text-blue-500 text-gray-500 flex items-center space-x-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-colors">
                 <span>Login</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

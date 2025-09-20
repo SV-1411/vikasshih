@@ -175,28 +175,10 @@ export default function LiveSlidesEnhanced({ classroom, currentUser, isHost }: L
 
   // Start session
   const startSession = async () => {
-    const newSessionId = `session_${classroom.id}_${Date.now()}`;
+    const newSessionId = `session_${Date.now()}`;
     setSessionId(newSessionId);
     setIsSessionActive(true);
     setShareLink(`${window.location.origin}/join-slides/${newSessionId}`);
-    
-    // Initialize session recorder
-    if (isHost) {
-      const recorder = new SessionRecorder(
-        newSessionId,
-        classroom.id,
-        classroom.name,
-        currentUser.id,
-        currentUser.full_name
-      );
-      recorder.setSlides(slides);
-      recorder.addParticipant({
-        id: currentUser.id,
-        name: currentUser.full_name,
-        role: currentUser.role
-      });
-      setSessionRecorder(recorder);
-    }
     
     // Save session to localStorage
     const sessions = safeLocalStorage.getJSON<any>('demo_slide_sessions', {});
@@ -211,6 +193,29 @@ export default function LiveSlidesEnhanced({ classroom, currentUser, isHost }: L
       reactions: []
     };
     safeLocalStorage.setJSON('demo_slide_sessions', sessions);
+    
+    // Initialize session recorder
+    const recorder = new SessionRecorder(
+      newSessionId,
+      classroom.id,
+      classroom.name,
+      currentUser.id,
+      currentUser.name
+    );
+    recorder.setSlides(slides);
+    recorder.addParticipant(currentUser);
+    
+    // Start audio recording if host
+    if (isHost) {
+      try {
+        await recorder.startAudioRecording();
+        console.log('🎤 Audio recording started for session');
+      } catch (error) {
+        console.error('Failed to start audio recording:', error);
+      }
+    }
+    
+    setSessionRecorder(recorder);
     
     // Initialize audio
     if (WebRTCAudioManager.isSupported()) {

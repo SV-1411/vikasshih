@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  BookOpen, 
-  Users, 
-  Plus, 
-  UserPlus, 
-  MessageSquare, 
-  FileText, 
-  HelpCircle, 
+import {
+  BookOpen,
+  Users,
+  Plus,
+  UserPlus,
+  MessageSquare,
+  FileText,
+  HelpCircle,
   Calendar,
   Copy,
   Check,
@@ -26,9 +26,6 @@ import LiveSlidesEnhanced from './LiveSlidesEnhanced';
 import SessionHistory from './SessionHistory';
 import QuickMeaning from './QuickMeaning';
 import PomodoroFocus from './PomodoroFocus';
-// import CreateClassroomModal from './CreateClassroomModal';
-// import JoinClassroomModal from './JoinClassroomModal';
-// import ClassroomDetails from './ClassroomDetails';
 
 // Inline modal components
 const CreateClassroomModal = ({ onClose, onSubmit }: { onClose: () => void; onSubmit: (data: any) => Promise<any> }) => {
@@ -49,54 +46,61 @@ const CreateClassroomModal = ({ onClose, onSubmit }: { onClose: () => void; onSu
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-gray-100 h-screen md:h-auto">
-        <div className="p-6 md:p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Create Classroom</h2>
-          <form onSubmit={handleSubmit} className="space-y-5 h-full">
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+      <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-3xl shadow-2xl max-w-md w-full border border-slate-200 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-50/30 to-amber-100/20 pointer-events-none"></div>
+        <div className="p-8 md:p-10 relative">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-br from-amber-100 to-amber-200 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+              <BookOpen className="w-8 h-8 text-amber-700" />
+            </div>
+            <h2 className="text-3xl font-bold text-slate-800 mb-2">Create Classroom</h2>
+            <p className="text-slate-600">Establish a new academic space</p>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Classroom Name</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-3">Classroom Name</label>
               <input
                 type="text"
                 placeholder="Enter classroom name"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-5 py-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all bg-white shadow-sm"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-3">Subject</label>
               <input
                 type="text"
                 placeholder="Enter subject"
                 value={formData.subject}
                 onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-5 py-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all bg-white shadow-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-3">Description</label>
               <textarea
                 placeholder="Enter description (optional)"
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                className="w-full px-5 py-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all resize-none bg-white shadow-sm"
                 rows={3}
               />
             </div>
-            <div className="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0 pt-4">
-              <button 
-                type="button" 
-                onClick={onClose} 
-                className="flex-1 w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+            <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0 pt-6">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 w-full px-8 py-4 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-all duration-200 font-semibold shadow-sm"
               >
                 Cancel
               </button>
-              <button 
-                type="submit" 
-                disabled={loading} 
-                className="flex-1 w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium"
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 w-full px-8 py-4 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-xl hover:from-amber-700 hover:to-amber-800 disabled:opacity-50 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 {loading ? 'Creating...' : 'Create Classroom'}
               </button>
@@ -126,34 +130,41 @@ const JoinClassroomModal = ({ onClose, onSubmit }: { onClose: () => void; onSubm
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-gray-100">
-        <div className="p-6 md:p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Join Classroom</h2>
-          <form onSubmit={handleSubmit} className="space-y-5">
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+      <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-3xl shadow-2xl max-w-md w-full border border-slate-200 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/30 to-emerald-100/20 pointer-events-none"></div>
+        <div className="p-8 md:p-10 relative">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+              <UserPlus className="w-8 h-8 text-emerald-700" />
+            </div>
+            <h2 className="text-3xl font-bold text-slate-800 mb-2">Join Classroom</h2>
+            <p className="text-slate-600">Enter your classroom code</p>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Classroom Code</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-3">Classroom Code</label>
               <input
                 type="text"
                 placeholder="Enter classroom code (e.g., CLS-ABC123)"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center font-mono text-lg tracking-wider focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                className="w-full px-5 py-4 border border-slate-300 rounded-xl text-center font-mono text-lg tracking-wider focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all bg-white shadow-sm"
                 required
               />
             </div>
-            <div className="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0 pt-4">
-              <button 
-                type="button" 
-                onClick={onClose} 
-                className="flex-1 w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+            <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0 pt-6">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 w-full px-8 py-4 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-all duration-200 font-semibold shadow-sm"
               >
                 Cancel
               </button>
-              <button 
-                type="submit" 
-                disabled={loading || !code} 
-                className="flex-1 w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors font-medium"
+              <button
+                type="submit"
+                disabled={loading || !code}
+                className="flex-1 w-full px-8 py-4 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl hover:from-emerald-700 hover:to-emerald-800 disabled:opacity-50 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 {loading ? 'Joining...' : 'Join Classroom'}
               </button>
@@ -168,118 +179,118 @@ const JoinClassroomModal = ({ onClose, onSubmit }: { onClose: () => void; onSubm
 const ClassroomDetails = ({ classroom, currentUser, onBack }: { classroom: any; currentUser: any; onBack: () => void }) => {
   const [tab, setTab] = useState<'chat' | 'polls' | 'quizzes' | 'live' | 'history' | 'dictionary' | 'focus'>('chat');
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
-        <div className="w-full md:w-72 bg-white border-r border-gray-200 shadow-sm">
-          <div className="p-6 border-b border-gray-200">
-            <button 
-              onClick={onBack} 
-              className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium mb-4"
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col md:flex-row">
+        <div className="w-full md:w-80 bg-white border-r border-slate-200 shadow-lg">
+          <div className="p-8 border-b border-slate-200">
+            <button
+              onClick={onBack}
+              className="w-full px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-xl hover:from-slate-700 hover:to-slate-800 transition-all duration-200 font-semibold mb-6 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               ← Back to Dashboard
             </button>
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-100">
-              <h2 className="text-xl font-bold text-gray-900 mb-2">{classroom.name}</h2>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-600">Code:</span>
-                <span className="text-sm font-mono bg-white px-2 py-1 rounded border text-gray-800">{classroom.code}</span>
+            <div className="bg-gradient-to-br from-amber-50 to-amber-100 p-6 rounded-2xl border border-amber-200 shadow-inner">
+              <h2 className="text-2xl font-bold text-slate-800 mb-3">{classroom.name}</h2>
+              <div className="flex items-center space-x-3 mb-4">
+                <span className="text-sm font-semibold text-slate-600">Code:</span>
+                <span className="text-sm font-mono bg-white px-3 py-1 rounded-lg border border-amber-300 text-slate-800 shadow-sm">{classroom.code}</span>
               </div>
               {classroom.subject && (
-                <div className="mt-2">
-                  <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
+                <div className="mt-3">
+                  <span className="inline-block px-3 py-1 bg-amber-200 text-amber-800 text-sm font-semibold rounded-full border border-amber-300">
                     {classroom.subject}
                   </span>
                 </div>
               )}
             </div>
           </div>
-          <nav className="p-4 space-y-2">
-            <button 
-              onClick={()=>setTab('chat')} 
-              className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors flex items-center space-x-3 ${
-                tab==='chat'? 'bg-blue-100 text-blue-700 border border-blue-200':'hover:bg-gray-100 text-gray-700'
+          <nav className="p-6 space-y-3">
+            <button
+              onClick={()=>setTab('chat')}
+              className={`w-full text-left px-5 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center space-x-4 ${
+                tab==='chat'? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-lg transform -translate-y-0.5':'hover:bg-slate-50 text-slate-700 border border-slate-200'
               }`}
             >
-              <MessageSquare size={18} />
+              <MessageSquare size={20} />
               <span>Chat</span>
             </button>
-            <button 
-              onClick={()=>setTab('polls')} 
-              className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors flex items-center space-x-3 ${
-                tab==='polls'? 'bg-blue-100 text-blue-700 border border-blue-200':'hover:bg-gray-100 text-gray-700'
+            <button
+              onClick={()=>setTab('polls')}
+              className={`w-full text-left px-5 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center space-x-4 ${
+                tab==='polls'? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-lg transform -translate-y-0.5':'hover:bg-slate-50 text-slate-700 border border-slate-200'
               }`}
             >
-              <HelpCircle size={18} />
+              <HelpCircle size={20} />
               <span>Polls</span>
             </button>
-            <button 
-              onClick={()=>setTab('quizzes')} 
-              className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors flex items-center space-x-3 ${
-                tab==='quizzes'? 'bg-blue-100 text-blue-700 border border-blue-200':'hover:bg-gray-100 text-gray-700'
+            <button
+              onClick={()=>setTab('quizzes')}
+              className={`w-full text-left px-5 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center space-x-4 ${
+                tab==='quizzes'? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-lg transform -translate-y-0.5':'hover:bg-slate-50 text-slate-700 border border-slate-200'
               }`}
             >
-              <FileText size={18} />
+              <FileText size={20} />
               <span>Quizzes</span>
             </button>
-            <button 
-              onClick={()=>setTab('live')} 
-              className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors flex items-center space-x-3 ${
-                tab==='live'? 'bg-blue-100 text-blue-700 border border-blue-200':'hover:bg-gray-100 text-gray-700'
+            <button
+              onClick={()=>setTab('live')}
+              className={`w-full text-left px-5 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center space-x-4 ${
+                tab==='live'? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-lg transform -translate-y-0.5':'hover:bg-slate-50 text-slate-700 border border-slate-200'
               }`}
             >
-              <BookOpen size={18} />
+              <BookOpen size={20} />
               <span>Live Slides</span>
             </button>
-            <button 
-              onClick={()=>setTab('history')} 
-              className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors flex items-center space-x-3 ${
-                tab==='history'? 'bg-blue-100 text-blue-700 border border-blue-200':'hover:bg-gray-100 text-gray-700'
+            <button
+              onClick={()=>setTab('history')}
+              className={`w-full text-left px-5 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center space-x-4 ${
+                tab==='history'? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-lg transform -translate-y-0.5':'hover:bg-slate-50 text-slate-700 border border-slate-200'
               }`}
             >
-              <Download size={18} />
+              <Download size={20} />
               <span>Session History</span>
             </button>
-            <button 
-              onClick={()=>setTab('dictionary')} 
-              className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors flex items-center space-x-3 ${
-                tab==='dictionary'? 'bg-blue-100 text-blue-700 border border-blue-200':'hover:bg-gray-100 text-gray-700'
+            <button
+              onClick={()=>setTab('dictionary')}
+              className={`w-full text-left px-5 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center space-x-4 ${
+                tab==='dictionary'? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-lg transform -translate-y-0.5':'hover:bg-slate-50 text-slate-700 border border-slate-200'
               }`}
             >
-              <HelpCircle size={18} />
+              <HelpCircle size={20} />
               <span>Dictionary</span>
             </button>
-            <button 
-              onClick={()=>setTab('focus')} 
+            <button
+              onClick={()=>setTab('focus')}
               data-tab="focus"
-              className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors flex items-center space-x-3 ${
-                tab==='focus'? 'bg-blue-100 text-blue-700 border border-blue-200':'hover:bg-gray-100 text-gray-700'
+              className={`w-full text-left px-5 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center space-x-4 ${
+                tab==='focus'? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-lg transform -translate-y-0.5':'hover:bg-slate-50 text-slate-700 border border-slate-200'
               }`}
             >
-              <Timer size={18} />
+              <Timer size={20} />
               <span>Focus Timer</span>
             </button>
           </nav>
         </div>
         <div className="flex-1 bg-white">
-          <div className="border-b border-gray-200 bg-white px-4 md:px-8 py-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{classroom.name}</h1>
-            <div className="flex items-center space-x-4 text-sm text-gray-600">
-              <span>Classroom Code: <span className="font-mono font-medium">{classroom.code}</span></span>
+          <div className="border-b border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100 px-6 md:px-10 py-8">
+            <h1 className="text-4xl font-bold text-slate-800 mb-3">{classroom.name}</h1>
+            <div className="flex items-center space-x-6 text-sm text-slate-600">
+              <span>Classroom Code: <span className="font-mono font-semibold text-slate-800">{classroom.code}</span></span>
               {classroom.subject && (
-                <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
+                <span className="inline-block px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-semibold">
                   {classroom.subject}
                 </span>
               )}
             </div>
           </div>
-          <div className="p-4 md:p-8">
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm min-h-[60vh] md:h-[calc(100vh-280px)]">
+          <div className="p-6 md:p-10">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-lg min-h-[60vh] md:h-[calc(100vh-280px)]">
               {tab==='chat' && <Chat classroom={classroom} currentUser={currentUser} />}
               {tab==='polls' && <Polls classroom={classroom} currentUser={currentUser} />}
               {tab==='quizzes' && <Quizzes classroom={classroom} currentUser={currentUser} />}
               {tab==='live' && (
-                <LiveSlidesEnhanced 
-                  classroom={classroom} 
-                  currentUser={currentUser} 
+                <LiveSlidesEnhanced
+                  classroom={classroom}
+                  currentUser={currentUser}
                   isHost={currentUser.role === 'teacher'}
                 />
               )}
@@ -287,11 +298,11 @@ const ClassroomDetails = ({ classroom, currentUser, onBack }: { classroom: any; 
                 <SessionHistory currentUser={currentUser} />
               )}
               {tab==='dictionary' && (
-                <div className="p-4 md:p-8">
+                <div className="p-6 md:p-10">
                   <div className="max-w-2xl mx-auto">
                     <div className="text-center mb-8">
-                      <h2 className="text-2xl font-bold text-gray-900 mb-3">Instant Dictionary</h2>
-                      <p className="text-gray-600">Look up word meanings instantly - works offline with built-in academic vocabulary</p>
+                      <h2 className="text-3xl font-bold text-slate-800 mb-3">Instant Dictionary</h2>
+                      <p className="text-slate-600">Look up word meanings instantly - works offline with built-in academic vocabulary</p>
                     </div>
                     <QuickMeaning isOnline={navigator.onLine} />
                   </div>
@@ -299,9 +310,9 @@ const ClassroomDetails = ({ classroom, currentUser, onBack }: { classroom: any; 
               )}
               {tab==='focus' && (
                 <div className="h-full">
-                  <PomodoroFocus 
-                    onBack={() => setTab('chat')} 
-                    onLogout={() => {}} 
+                  <PomodoroFocus
+                    onBack={() => setTab('chat')}
+                    onLogout={() => {}}
                   />
                 </div>
               )}
@@ -441,54 +452,54 @@ const ClassroomDashboard: React.FC<ClassroomDashboardProps> = ({ currentUser, on
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading classrooms...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-amber-500 border-t-transparent mx-auto mb-6"></div>
+          <p className="text-slate-600 text-lg">Loading classrooms...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
-      <div className="bg-white shadow-lg border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6 sm:py-8">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="bg-white shadow-lg border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
+          <div className="py-8 sm:py-12">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div className="min-w-0">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">My Classrooms</h1>
-                <p className="text-lg text-gray-600">
-                  {currentUser.role === 'teacher' 
-                    ? 'Manage your classrooms and engage with students' 
-                    : 'Access your enrolled classrooms and learning materials'
+                <h1 className="text-4xl font-bold text-slate-800 mb-3">My Classrooms</h1>
+                <p className="text-xl text-slate-600 leading-relaxed">
+                  {currentUser.role === 'teacher'
+                    ? 'Manage your classrooms and engage with students in an elegant academic environment'
+                    : 'Access your enrolled classrooms and learning materials with timeless sophistication'
                   }
                 </p>
               </div>
-              <div className="flex items-stretch md:items-center flex-wrap gap-3">
+              <div className="flex items-stretch md:items-center flex-wrap gap-4">
                 {currentUser.role === 'teacher' && (
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    className="flex items-center justify-center px-5 sm:px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium w-full sm:w-auto"
+                    className="flex items-center justify-center px-8 sm:px-10 py-4 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-xl hover:from-amber-700 hover:to-amber-800 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold w-full sm:w-auto transform hover:-translate-y-1"
                   >
-                    <Plus className="w-5 h-5 mr-2" />
+                    <Plus className="w-6 h-6 mr-3" />
                     Create Classroom
                   </button>
                 )}
                 {currentUser.role === 'student' && (
                   <button
                     onClick={() => setShowJoinModal(true)}
-                    className="flex items-center justify-center px-5 sm:px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium w-full sm:w-auto"
+                    className="flex items-center justify-center px-8 sm:px-10 py-4 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold w-full sm:w-auto transform hover:-translate-y-1"
                   >
-                    <UserPlus className="w-5 h-5 mr-2" />
+                    <UserPlus className="w-6 h-6 mr-3" />
                     Join Classroom
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={handleLogoutClick}
-                  className="px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200 shadow-md font-medium w-full sm:w-auto"
+                  className="px-6 py-4 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-xl hover:from-slate-700 hover:to-slate-800 transition-all duration-300 shadow-lg font-semibold w-full sm:w-auto transform hover:-translate-y-1"
                 >
                   Logout
                 </button>
@@ -499,56 +510,56 @@ const ClassroomDashboard: React.FC<ClassroomDashboardProps> = ({ currentUser, on
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-12">
         {error && (
-          <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-xl shadow-sm">
-            <p className="text-red-700 font-medium">{error}</p>
+          <div className="mb-10 p-6 bg-red-50 border border-red-200 rounded-2xl shadow-sm">
+            <p className="text-red-700 font-semibold text-lg">{error}</p>
           </div>
         )}
 
         {classrooms.length === 0 ? (
-          <div className="space-y-8">
+          <div className="space-y-12">
             {/* Quick Dictionary Access */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 md:p-8">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <HelpCircle className="w-8 h-8 text-purple-600" />
+            <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-8 md:p-12">
+              <div className="text-center mb-8">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                  <HelpCircle className="w-10 h-10 text-purple-700" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Instant Dictionary</h3>
-                <p className="text-gray-600">Look up word meanings while you study - works offline too!</p>
+                <h3 className="text-2xl font-bold text-slate-800 mb-3">Instant Dictionary</h3>
+                <p className="text-slate-600 text-lg">Look up word meanings while you study - works offline too!</p>
               </div>
               <QuickMeaning isOnline={navigator.onLine} />
             </div>
 
             {/* Empty State */}
-            <div className="text-center py-16">
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 max-w-md mx-auto">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <BookOpen className="w-10 h-10 text-blue-600" />
+            <div className="text-center py-20">
+              <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-16 max-w-lg mx-auto">
+                <div className="w-24 h-24 bg-gradient-to-br from-amber-100 to-amber-200 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+                  <BookOpen className="w-12 h-12 text-amber-700" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                <h3 className="text-3xl font-bold text-slate-800 mb-4">
                   {currentUser.role === 'teacher' ? 'No classrooms created yet' : 'No classrooms joined yet'}
                 </h3>
-                <p className="text-gray-600 mb-8 leading-relaxed">
-                  {currentUser.role === 'teacher' 
-                    ? 'Create your first classroom to start teaching and managing students.'
-                    : 'Join a classroom using the classroom code provided by your teacher.'
+                <p className="text-slate-600 mb-10 leading-relaxed text-lg">
+                  {currentUser.role === 'teacher'
+                    ? 'Create your first classroom to start teaching and managing students in an elegant academic environment.'
+                    : 'Join a classroom using the classroom code provided by your teacher for timeless learning.'
                   }
                 </p>
                 {currentUser.role === 'teacher' ? (
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    className="flex items-center px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg mx-auto font-medium"
+                    className="flex items-center px-10 py-5 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-2xl hover:from-amber-700 hover:to-amber-800 transition-all duration-300 shadow-lg hover:shadow-xl mx-auto font-semibold transform hover:-translate-y-1"
                   >
-                    <Plus className="w-5 h-5 mr-3" />
+                    <Plus className="w-6 h-6 mr-4" />
                     Create Your First Classroom
                   </button>
                 ) : (
                   <button
                     onClick={() => setShowJoinModal(true)}
-                    className="flex items-center px-8 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg mx-auto font-medium"
+                    className="flex items-center px-10 py-5 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-2xl hover:from-emerald-700 hover:to-emerald-800 transition-all duration-300 shadow-lg hover:shadow-xl mx-auto font-semibold transform hover:-translate-y-1"
                   >
-                    <UserPlus className="w-5 h-5 mr-3" />
+                    <UserPlus className="w-6 h-6 mr-4" />
                     Join a Classroom
                   </button>
                 )}
@@ -556,125 +567,125 @@ const ClassroomDashboard: React.FC<ClassroomDashboardProps> = ({ currentUser, on
             </div>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-12">
             {/* Quick Dictionary Access */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <HelpCircle className="w-8 h-8 text-purple-600" />
+            <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-8 md:p-12">
+              <div className="text-center mb-8">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                  <HelpCircle className="w-10 h-10 text-purple-700" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Instant Dictionary</h3>
-                <p className="text-gray-600">Look up word meanings while you study - works offline too!</p>
+                <h3 className="text-2xl font-bold text-slate-800 mb-3">Instant Dictionary</h3>
+                <p className="text-slate-600 text-lg">Look up word meanings while you study - works offline too!</p>
               </div>
               <QuickMeaning isOnline={navigator.onLine} />
             </div>
 
             {/* Classrooms Grid */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Classrooms</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
-            {classrooms.map(classroom => (
-              <div
-                key={classroom.id}
-                className="group bg-white rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:border-blue-200 transition-all duration-300 cursor-pointer overflow-hidden"
-                onClick={() => setSelectedClassroom(classroom)}
-              >
-                <div className="p-6 md:p-8">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center group-hover:from-blue-200 group-hover:to-indigo-200 transition-colors">
-                      <BookOpen className="w-8 h-8 text-blue-600" />
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <span className="px-3 py-2 bg-gray-100 text-gray-800 text-xs sm:text-sm font-mono rounded-lg border">
-                        {classroom.code}
-                      </span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          copyClassroomCode(classroom.code);
-                        }}
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
-                        title="Copy classroom code"
-                      >
-                        {copiedCode === classroom.code ? (
-                          <Check className="w-5 h-5 text-green-500" />
-                        ) : (
-                          <Copy className="w-5 h-5" />
+              <h2 className="text-3xl font-bold text-slate-800 mb-8">Your Classrooms</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10 lg:gap-12">
+                {classrooms.map(classroom => (
+                  <div
+                    key={classroom.id}
+                    className="group bg-white rounded-3xl shadow-xl border border-slate-200 hover:shadow-2xl hover:border-amber-300 transition-all duration-500 cursor-pointer overflow-hidden transform hover:-translate-y-2"
+                    onClick={() => setSelectedClassroom(classroom)}
+                  >
+                    <div className="p-8 md:p-10">
+                      <div className="flex items-center justify-between mb-8">
+                        <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-amber-200 rounded-2xl flex items-center justify-center group-hover:from-amber-200 group-hover:to-amber-300 transition-all duration-300 shadow-inner">
+                          <BookOpen className="w-10 h-10 text-amber-700" />
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <span className="px-4 py-2 bg-slate-100 text-slate-700 text-sm sm:text-base font-mono rounded-xl border border-slate-200 shadow-sm">
+                            {classroom.code}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              copyClassroomCode(classroom.code);
+                            }}
+                            className="p-3 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all duration-200 shadow-sm"
+                            title="Copy classroom code"
+                          >
+                            {copiedCode === classroom.code ? (
+                              <Check className="w-6 h-6 text-emerald-500" />
+                            ) : (
+                              <Copy className="w-6 h-6" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      <h3 className="text-xl md:text-2xl font-bold text-slate-800 mb-4 group-hover:text-amber-700 transition-colors duration-300">{classroom.name}</h3>
+
+                      {classroom.description && (
+                        <p className="text-slate-600 text-base mb-8 line-clamp-2 leading-relaxed">{classroom.description}</p>
+                      )}
+
+                      <div className="space-y-4 text-base">
+                        {classroom.subject && (
+                          <div className="flex items-center text-slate-700">
+                            <div className="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center mr-4 shadow-sm">
+                              <BookOpen className="w-5 h-5 text-amber-600" />
+                            </div>
+                            <span className="font-semibold">{classroom.subject}</span>
+                          </div>
                         )}
-                      </button>
-                    </div>
-                  </div>
 
-                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">{classroom.name}</h3>
-                  
-                  {classroom.description && (
-                    <p className="text-gray-600 text-sm mb-6 line-clamp-2 leading-relaxed">{classroom.description}</p>
-                  )}
+                        {currentUser.role === 'student' && classroom.teacher && (
+                          <div className="flex items-center text-slate-700">
+                            <div className="w-8 h-8 bg-emerald-50 rounded-xl flex items-center justify-center mr-4 shadow-sm">
+                              <Users className="w-5 h-5 text-emerald-600" />
+                            </div>
+                            <span className="font-semibold">{classroom.teacher.full_name}</span>
+                          </div>
+                        )}
 
-                  <div className="space-y-3 text-sm">
-                    {classroom.subject && (
-                      <div className="flex items-center text-gray-700">
-                        <div className="w-6 h-6 bg-blue-50 rounded-lg flex items-center justify-center mr-3">
-                          <BookOpen className="w-4 h-4 text-blue-600" />
-                        </div>
-                        <span className="font-medium">{classroom.subject}</span>
-                      </div>
-                    )}
-                    
-                    {currentUser.role === 'student' && classroom.teacher && (
-                      <div className="flex items-center text-gray-700">
-                        <div className="w-6 h-6 bg-green-50 rounded-lg flex items-center justify-center mr-3">
-                          <Users className="w-4 h-4 text-green-600" />
-                        </div>
-                        <span className="font-medium">{classroom.teacher.full_name}</span>
-                      </div>
-                    )}
-                    
-                    {currentUser.role === 'teacher' && (
-                      <div className="flex items-center text-gray-700">
-                        <div className="w-6 h-6 bg-green-50 rounded-lg flex items-center justify-center mr-3">
-                          <Users className="w-4 h-4 text-green-600" />
-                        </div>
-                        <span className="font-medium">{classroom.members_count || 0} students</span>
-                      </div>
-                    )}
+                        {currentUser.role === 'teacher' && (
+                          <div className="flex items-center text-slate-700">
+                            <div className="w-8 h-8 bg-emerald-50 rounded-xl flex items-center justify-center mr-4 shadow-sm">
+                              <Users className="w-5 h-5 text-emerald-600" />
+                            </div>
+                            <span className="font-semibold">{classroom.members_count || 0} students</span>
+                          </div>
+                        )}
 
-                    <div className="flex items-center text-gray-600">
-                      <div className="w-6 h-6 bg-gray-50 rounded-lg flex items-center justify-center mr-3">
-                        <Calendar className="w-4 h-4 text-gray-500" />
+                        <div className="flex items-center text-slate-600">
+                          <div className="w-8 h-8 bg-slate-50 rounded-xl flex items-center justify-center mr-4 shadow-sm">
+                            <Calendar className="w-5 h-5 text-slate-500" />
+                          </div>
+                          <span>Created {new Date(classroom.created_at).toLocaleDateString()}</span>
+                        </div>
                       </div>
-                      <span>Created {new Date(classroom.created_at).toLocaleDateString()}</span>
-                    </div>
-                  </div>
 
-                  <div className="mt-6 md:mt-8 pt-6 border-t border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-6">
-                        <div className="flex items-center text-gray-500">
-                          <FileText className="w-4 h-4 mr-2" />
-                          <span className="text-xs font-medium">Assignments</span>
+                      <div className="mt-8 md:mt-10 pt-8 border-t border-slate-100">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-8">
+                            <div className="flex items-center text-slate-500">
+                              <FileText className="w-5 h-5 mr-2" />
+                              <span className="text-sm font-medium">Assignments</span>
+                            </div>
+                            <div className="flex items-center text-slate-500">
+                              <HelpCircle className="w-5 h-5 mr-2" />
+                              <span className="text-sm font-medium">Quizzes</span>
+                            </div>
+                            <div className="flex items-center text-slate-500">
+                              <MessageSquare className="w-5 h-5 mr-2" />
+                              <span className="text-sm font-medium">Chat</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center text-amber-600 group-hover:text-amber-700">
+                            <span className="text-base font-semibold">Enter Classroom</span>
+                            <svg className="w-5 h-5 ml-3 transform group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
                         </div>
-                        <div className="flex items-center text-gray-500">
-                          <HelpCircle className="w-4 h-4 mr-2" />
-                          <span className="text-xs font-medium">Quizzes</span>
-                        </div>
-                        <div className="flex items-center text-gray-500">
-                          <MessageSquare className="w-4 h-4 mr-2" />
-                          <span className="text-xs font-medium">Chat</span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center text-blue-600 group-hover:text-blue-700">
-                        <span className="text-sm font-semibold">Enter Classroom</span>
-                        <svg className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-              ))}
+                ))}
               </div>
             </div>
           </div>

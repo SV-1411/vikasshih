@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Calendar, Clock, Users, Presentation, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { Download, Calendar, Clock, Users, Presentation, FileText, ChevronDown, ChevronUp, Mic, Play, Pause } from 'lucide-react';
 import { SessionRecorder, SessionRecording } from '../lib/session-recorder';
 import { initializeDemoSessions } from '../lib/demo-sessions';
 import type { Profile } from '../types';
@@ -12,6 +12,7 @@ export default function SessionHistory({ currentUser }: SessionHistoryProps) {
   const [recordings, setRecordings] = useState<SessionRecording[]>([]);
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [playingAudio, setPlayingAudio] = useState<string | null>(null);
 
   useEffect(() => {
     loadRecordings();
@@ -172,10 +173,17 @@ export default function SessionHistory({ currentUser }: SessionHistoryProps) {
                         <Users className="w-4 h-4" />
                         <span>{recording.participants.length} participants</span>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <FileText className="w-4 h-4" />
-                        <span>{recording.slides.length} slides</span>
-                      </div>
+                      {recording.audioRecording ? (
+                        <div className="flex items-center space-x-2">
+                          <Mic className="w-4 h-4 text-fuchsia-500" />
+                          <span className="text-fuchsia-600 font-medium">Audio included</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center space-x-2">
+                          <FileText className="w-4 h-4" />
+                          <span>{recording.slides.length} slides</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center space-x-4 text-sm text-gray-500">
@@ -193,6 +201,15 @@ export default function SessionHistory({ currentUser }: SessionHistoryProps) {
                       <Download className="w-4 h-4" />
                       <span>Slides</span>
                     </button>
+                    {recording.audioRecording && (
+                      <button
+                        onClick={() => SessionRecorder.downloadAudio(recording)}
+                        className="px-3 py-2 bg-fuchsia-600 text-white rounded-lg hover:bg-fuchsia-700 transition-colors flex items-center space-x-2"
+                      >
+                        <Mic className="w-4 h-4" />
+                        <span>Audio</span>
+                      </button>
+                    )}
                     
                     <button
                       onClick={() => downloadSessionData(recording)}
@@ -285,6 +302,36 @@ export default function SessionHistory({ currentUser }: SessionHistoryProps) {
                             </div>
                           )}
 
+                          {/* Audio Recording */}
+                          {recording.audioRecording && (
+                            <div>
+                              <p className="text-sm text-gray-600 mb-2 flex items-center">
+                                <Mic className="w-4 h-4 mr-1" />
+                                Lecture Audio ({recording.audioRecording.format.toUpperCase()})
+                              </p>
+                              <div className="bg-white p-3 rounded-lg border">
+                                <audio 
+                                  controls 
+                                  preload="metadata"
+                                  className="w-full"
+                                  onPlay={() => setPlayingAudio(recording.id)}
+                                  onPause={() => setPlayingAudio(null)}
+                                  onEnded={() => setPlayingAudio(null)}
+                                >
+                                  <source 
+                                    src={URL.createObjectURL(recording.audioRecording.blob)} 
+                                    type={`audio/${recording.audioRecording.format === 'opus' ? 'webm' : recording.audioRecording.format}`}
+                                  />
+                                  Your browser does not support the audio element.
+                                </audio>
+                                <div className="flex justify-between text-xs text-gray-500 mt-2">
+                                  <span>Duration: {Math.floor(recording.audioRecording.duration / 60)}:{(recording.audioRecording.duration % 60).toString().padStart(2, '0')}</span>
+                                  <span>Size: {(recording.audioRecording.size / 1024 / 1024).toFixed(2)} MB</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
                           {/* Download Options */}
                           <div className="pt-4 border-t border-gray-200">
                             <p className="text-sm text-gray-600 mb-3">Download Options</p>
@@ -294,8 +341,17 @@ export default function SessionHistory({ currentUser }: SessionHistoryProps) {
                                 className="w-full px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center space-x-2"
                               >
                                 <Download className="w-4 h-4" />
-                                <span>Download Slides (HTML)</span>
+                                <span>Download Slides {recording.audioRecording ? '+ Audio ' : ''}(HTML)</span>
                               </button>
+                              {recording.audioRecording && (
+                                <button
+                                  onClick={() => SessionRecorder.downloadAudio(recording)}
+                                  className="w-full px-4 py-2 bg-fuchsia-50 text-fuchsia-700 rounded-lg hover:bg-fuchsia-100 transition-colors flex items-center justify-center space-x-2"
+                                >
+                                  <Mic className="w-4 h-4" />
+                                  <span>Download Audio Only ({recording.audioRecording.format.toUpperCase()})</span>
+                                </button>
+                              )}
                               <button
                                 onClick={() => downloadSessionData(recording)}
                                 className="w-full px-4 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center space-x-2"

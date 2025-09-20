@@ -41,6 +41,12 @@ export interface SessionRecording {
     timestamp: number;
     duration: number; // seconds spent on this slide
   }>;
+  audioRecording?: {
+    blob: Blob;
+    duration: number;
+    format: 'opus' | 'webm' | 'mp4';
+    size: number;
+  };
 }
 
 export class SessionRecorder {
@@ -56,6 +62,9 @@ export class SessionRecorder {
   private slideTimings: Array<{ slideIndex: number; timestamp: number; duration: number }> = [];
   private currentSlideIndex: number = 0;
   private currentSlideStartTime: number = Date.now();
+  private mediaRecorder: MediaRecorder | null = null;
+  private audioChunks: Blob[] = [];
+  private audioRecording: { blob: Blob; duration: number; format: 'opus' | 'webm' | 'mp4'; size: number } | null = null;
 
   constructor(
     sessionId: string,
@@ -148,11 +157,82 @@ export class SessionRecorder {
   }
 
   /**
+   * Start audio recording
+   */
+  async startAudioRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Try Opus first, fallback to webm/mp4
+      const mimeTypes = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/mp4'
+      ];
+      
+      let selectedMimeType = '';
+      for (const mimeType of mimeTypes) {
+        if (MediaRecorder.isTypeSupported(mimeType)) {
+          selectedMimeType = mimeType;
+          break;
+        }
+      }
+      
+      if (!selectedMimeType) {
+        throw new Error('No supported audio format found');
+      }
+      
+      this.mediaRecorder = new MediaRecorder(stream, { mimeType: selectedMimeType });
+      this.audioChunks = [];
+      
+      this.mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          this.audioChunks.push(event.data);
+        }
+      };
+      
+      this.mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(this.audioChunks, { type: selectedMimeType });
+        const duration = Math.round((Date.now() - this.startTime.getTime()) / 1000);
+        
+        this.audioRecording = {
+          blob: audioBlob,
+          duration: duration,
+          format: (selectedMimeType.includes('opus') ? 'opus' : selectedMimeType.includes('webm') ? 'webm' : 'mp4') as 'opus' | 'webm' | 'mp4',
+          size: audioBlob.size
+        };
+        
+        // Stop all tracks to release microphone
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      this.mediaRecorder.start(1000); // Collect data every second
+      console.log('🎤 Audio recording started with format:', selectedMimeType);
+      
+    } catch (error) {
+      console.error('Failed to start audio recording:', error);
+    }
+  }
+  
+  /**
+   * Stop audio recording
+   */
+  stopAudioRecording() {
+    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+      this.mediaRecorder.stop();
+      console.log('🎤 Audio recording stopped');
+    }
+  }
+
+  /**
    * End recording and save session
    */
   endRecording(): SessionRecording {
     const endTime = new Date();
     const duration = Math.round((endTime.getTime() - this.startTime.getTime()) / (1000 * 60)); // minutes
+    
+    // Stop audio recording if active
+    this.stopAudioRecording();
     
     // Record final slide timing
     const finalDuration = Math.round((Date.now() - this.currentSlideStartTime) / 1000);
@@ -175,7 +255,8 @@ export class SessionRecorder {
       slides: this.slides,
       participants: Array.from(this.participants.values()),
       reactions: this.reactions,
-      slideTimings: this.slideTimings
+      slideTimings: this.slideTimings,
+      audioRecording: this.audioRecording || undefined
     };
 
     // Save to localStorage
@@ -238,10 +319,30 @@ export class SessionRecorder {
   }
 
   /**
+   * Convert blob to base64 string
+   */
+  private static blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result.split(',')[1]); // Remove data:... prefix
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  /**
    * Download all slides as a ZIP (simplified version)
    */
   static async downloadSlides(recording: SessionRecording) {
     try {
+      // Convert audio to base64 if present
+      let audioBase64 = '';
+      if (recording.audioRecording) {
+        audioBase64 = await SessionRecorder.blobToBase64(recording.audioRecording.blob);
+      }
       // Create a simple HTML file with all slides
       const slideHtml = `
 <!DOCTYPE html>
@@ -313,6 +414,23 @@ export class SessionRecorder {
             border-radius: 15px;
             font-size: 0.9em;
         }
+        .audio-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .audio-info {
+            font-size: 0.9em;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -342,6 +460,24 @@ export class SessionRecorder {
         </div>
     </div>
     
+    ${recording.audioRecording ? `
+    <div class="audio-section">
+        <h3>🎤 Lecture Audio</h3>
+        <p>Recorded audio from the live session (${recording.audioRecording.format.toUpperCase()} format)</p>
+        <div class="audio-controls">
+            <audio controls preload="metadata" style="width: 100%; max-width: 500px;">
+                <source src="data:audio/${recording.audioRecording.format === 'opus' ? 'webm' : recording.audioRecording.format};base64,${audioBase64}" type="audio/${recording.audioRecording.format === 'opus' ? 'webm' : recording.audioRecording.format}">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+        <div class="audio-info">
+            Duration: ${Math.floor(recording.audioRecording.duration / 60)}:${(recording.audioRecording.duration % 60).toString().padStart(2, '0')} | 
+            Size: ${(recording.audioRecording.size / 1024 / 1024).toFixed(2)} MB | 
+            Format: ${recording.audioRecording.format.toUpperCase()}
+        </div>
+    </div>
+    ` : ''}
+    
     ${recording.slides.map((slide, index) => `
         <div class="slide">
             <div class="slide-header">
@@ -357,6 +493,7 @@ export class SessionRecorder {
         <h3>Session Statistics</h3>
         <p><strong>Total Reactions:</strong> ${recording.reactions.length}</p>
         <p><strong>Most Active Slide:</strong> Slide ${recording.slideTimings.reduce((max, timing) => timing.duration > max.duration ? timing : max, recording.slideTimings[0] || { slideIndex: 0, duration: 0 }).slideIndex + 1}</p>
+        ${recording.audioRecording ? `<p><strong>Audio Recording:</strong> ${Math.floor(recording.audioRecording.duration / 60)}:${(recording.audioRecording.duration % 60).toString().padStart(2, '0')} minutes</p>` : ''}
     </div>
 </body>
 </html>`;
@@ -377,5 +514,27 @@ export class SessionRecorder {
       console.error('Failed to download slides:', error);
       alert('Failed to download slides. Please try again.');
     }
+  }
+
+  /**
+   * Download only the audio track from a recording
+   */
+  static downloadAudio(recording: SessionRecording) {
+    if (!recording.audioRecording) {
+      alert('No audio recording available for this session.');
+      return;
+    }
+    const { blob, format } = recording.audioRecording;
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const date = new Date(recording.startTime).toISOString().split('T')[0];
+    const ext = format === 'opus' ? 'webm' : format; // use .webm for opus
+    link.href = url;
+    link.download = `audio-${recording.classroomName}-${date}.${ext}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    console.log('📥 Audio downloaded:', recording.id);
   }
 }
