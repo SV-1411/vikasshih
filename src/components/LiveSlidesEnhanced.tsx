@@ -24,6 +24,7 @@ import {
 import { WebRTCAudioManager, AudioParticipant } from '../lib/webrtc-audio';
 import { safeLocalStorage, safeCopyToClipboard } from '../lib/error-utils';
 import { demoSlides, initializeDemoSlides } from '../lib/demo-slides';
+import { SessionRecorder } from '../lib/session-recorder';
 import type { Classroom, Profile } from '../types';
 
 interface LiveSlidesEnhancedProps {
@@ -63,6 +64,9 @@ export default function LiveSlidesEnhanced({ classroom, currentUser, isHost }: L
   const [participants, setParticipants] = useState<AudioParticipant[]>([]);
   const [isMuted, setIsMuted] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
+  
+  // Recording state
+  const [sessionRecorder, setSessionRecorder] = useState<SessionRecorder | null>(null);
   
   // Reactions state
   const [reactions, setReactions] = useState<Reaction[]>([]);
@@ -176,6 +180,24 @@ export default function LiveSlidesEnhanced({ classroom, currentUser, isHost }: L
     setIsSessionActive(true);
     setShareLink(`${window.location.origin}/join-slides/${newSessionId}`);
     
+    // Initialize session recorder
+    if (isHost) {
+      const recorder = new SessionRecorder(
+        newSessionId,
+        classroom.id,
+        classroom.name,
+        currentUser.id,
+        currentUser.full_name
+      );
+      recorder.setSlides(slides);
+      recorder.addParticipant({
+        id: currentUser.id,
+        name: currentUser.full_name,
+        role: currentUser.role
+      });
+      setSessionRecorder(recorder);
+    }
+    
     // Save session to localStorage
     const sessions = safeLocalStorage.getJSON<any>('demo_slide_sessions', {});
     sessions[classroom.id] = {
@@ -199,7 +221,22 @@ export default function LiveSlidesEnhanced({ classroom, currentUser, isHost }: L
         currentUser.role as 'teacher' | 'student' | 'admin'
       );
       
-      manager.onParticipantsChanged(setParticipants);
+      manager.onParticipantsChanged((newParticipants) => {
+        setParticipants(newParticipants);
+        
+        // Update recorder with participants
+        if (sessionRecorder) {
+          newParticipants.forEach(p => {
+            if (!participants.find(existing => existing.id === p.id)) {
+              sessionRecorder.addParticipant({
+                id: p.id,
+                name: p.name,
+                role: p.role
+              });
+            }
+          });
+        }
+      });
       
       const audioInitialized = await manager.initializeAudio();
       if (audioInitialized) {
@@ -213,7 +250,14 @@ export default function LiveSlidesEnhanced({ classroom, currentUser, isHost }: L
 
   // End session
   const endSession = async () => {
+    // Save recording if host
+    if (sessionRecorder && isHost) {
+      const recording = sessionRecorder.endRecording();
+      console.log('📹 Session recorded and saved:', recording.id);
+    }
+    
     setIsSessionActive(false);
+    setSessionRecorder(null);
     
     // Clear session from localStorage
     const sessions = safeLocalStorage.getJSON<any>('demo_slide_sessions', {});
@@ -235,6 +279,11 @@ export default function LiveSlidesEnhanced({ classroom, currentUser, isHost }: L
   // Navigate slides
   const goToSlide = (index: number) => {
     if (index >= 0 && index < slides.length) {
+      // Record slide change if recording
+      if (sessionRecorder && isHost) {
+        sessionRecorder.recordSlideChange(index);
+      }
+      
       setCurrentSlideIndex(index);
       
       // Update in localStorage for viewers
@@ -263,6 +312,11 @@ export default function LiveSlidesEnhanced({ classroom, currentUser, isHost }: L
       type,
       timestamp: Date.now()
     };
+    
+    // Record reaction if recording
+    if (sessionRecorder) {
+      sessionRecorder.recordReaction(reaction);
+    }
     
     // Save to localStorage
     const sessions = safeLocalStorage.getJSON<any>('demo_slide_sessions', {});
@@ -571,7 +625,7 @@ export default function LiveSlidesEnhanced({ classroom, currentUser, isHost }: L
         )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes float-up {
           0% {
             opacity: 0;

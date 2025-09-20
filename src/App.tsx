@@ -24,6 +24,7 @@ import { supabase } from './lib/supabase';
 import { User, Profile, College } from './types';
 import { DEMO_MODE } from './lib/config';
 import { initializeDemoData } from './lib/init-demo-data';
+import { initializeDemoSessions } from './lib/demo-sessions';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -38,6 +39,7 @@ function App() {
     if (DEMO_MODE) {
       import('./lib/demo-data').then(({ initializeDemoData }) => {
         initializeDemoData();
+        initializeDemoSessions();
         // Small delay to ensure localStorage is written
         setTimeout(() => {
           initializeApp();

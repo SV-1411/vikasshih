@@ -10,7 +10,8 @@ import {
   Calendar,
   Copy,
   Check,
-  Timer
+  Timer,
+  Download
 } from 'lucide-react';
 import { classroomApi } from '../lib/educational-api';
 import { localBus, demoEvents } from '../lib/local-bus';
@@ -22,6 +23,7 @@ import Quizzes from './QuizzesNew';
 import LiveSlidesHost from './LiveSlidesHost';
 import LiveSlidesViewer from './LiveSlidesViewer';
 import LiveSlidesEnhanced from './LiveSlidesEnhanced';
+import SessionHistory from './SessionHistory';
 import QuickMeaning from './QuickMeaning';
 import PomodoroFocus from './PomodoroFocus';
 // import CreateClassroomModal from './CreateClassroomModal';
@@ -164,7 +166,7 @@ const JoinClassroomModal = ({ onClose, onSubmit }: { onClose: () => void; onSubm
 };
 
 const ClassroomDetails = ({ classroom, currentUser, onBack }: { classroom: any; currentUser: any; onBack: () => void }) => {
-  const [tab, setTab] = useState<'chat' | 'polls' | 'quizzes' | 'live' | 'dictionary' | 'focus'>('chat');
+  const [tab, setTab] = useState<'chat' | 'polls' | 'quizzes' | 'live' | 'history' | 'dictionary' | 'focus'>('chat');
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
         <div className="w-full md:w-72 bg-white border-r border-gray-200 shadow-sm">
@@ -228,6 +230,15 @@ const ClassroomDetails = ({ classroom, currentUser, onBack }: { classroom: any; 
               <span>Live Slides</span>
             </button>
             <button 
+              onClick={()=>setTab('history')} 
+              className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors flex items-center space-x-3 ${
+                tab==='history'? 'bg-blue-100 text-blue-700 border border-blue-200':'hover:bg-gray-100 text-gray-700'
+              }`}
+            >
+              <Download size={18} />
+              <span>Session History</span>
+            </button>
+            <button 
               onClick={()=>setTab('dictionary')} 
               className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-colors flex items-center space-x-3 ${
                 tab==='dictionary'? 'bg-blue-100 text-blue-700 border border-blue-200':'hover:bg-gray-100 text-gray-700'
@@ -271,6 +282,9 @@ const ClassroomDetails = ({ classroom, currentUser, onBack }: { classroom: any; 
                   currentUser={currentUser} 
                   isHost={currentUser.role === 'teacher'}
                 />
+              )}
+              {tab==='history' && (
+                <SessionHistory currentUser={currentUser} />
               )}
               {tab==='dictionary' && (
                 <div className="p-4 md:p-8">
@@ -399,11 +413,12 @@ const ClassroomDashboard: React.FC<ClassroomDashboardProps> = ({ currentUser, on
         return result;
       }
     } catch (err: any) {
-      console.error('💥 Join exception:', err);
-      setError(err.message);
+      console.error('❌ Join classroom error:', err);
+      setError(err.message || 'Failed to join classroom');
       return { error: err.message };
+    } finally {
+      setLoading(false);
     }
-    return { error: 'Unknown error' };
   };
 
   const copyClassroomCode = async (code: string) => {
