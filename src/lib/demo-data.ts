@@ -10,12 +10,12 @@ export const DEMO_ACCOUNTS = {
   teacher: {
     email: 'teacher@demo.college',
     password: 'demo123',
-    name: 'John Smith'
+    name: 'Aditya Turankar'
   },
   student: {
     email: 'student@demo.college', 
     password: 'demo123',
-    name: 'Alice Johnson'
+    name: 'Shivansh Verma'
   }
 };
 
@@ -47,7 +47,7 @@ export const DEMO_PROFILES: Profile[] = [
   {
     id: 'demo_teacher_1',
     username: 'teacher@demo.college',
-    full_name: 'John Smith',
+    full_name: 'Aditya Turankar',
     role: 'teacher',
     college_id: 'demo_college_1',
     phone: '+1-555-0101',
@@ -59,7 +59,7 @@ export const DEMO_PROFILES: Profile[] = [
   {
     id: 'demo_student_1',
     username: 'student@demo.college',
-    full_name: 'Alice Johnson',
+    full_name: 'Shivansh Verma',
     role: 'student',
     college_id: 'demo_college_1',
     phone: '+1-555-0102',
