@@ -26,32 +26,8 @@ const UserLogin: React.FC<UserLoginProps> = ({ onSuccess, onBack }) => {
     try {
       console.log('Starting user login...');
       
-      // Try Supabase first
-      try {
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password
-        });
-
-        if (!signInError && signInData) {
-          console.log('Supabase sign in successful, fetching profile...');
-          const profileResult = await userApi.getCurrentProfile();
-          if (profileResult.data) {
-            console.log('User login successful:', profileResult.data);
-            setSuccess(`Welcome back, ${profileResult.data.full_name}!`);
-            
-            setTimeout(() => {
-              onSuccess(profileResult.data);
-              window.location.href = '/classrooms';
-            }, 1500);
-            return;
-          }
-        }
-      } catch (supabaseError) {
-        console.warn('Supabase login failed, trying localStorage:', supabaseError);
-      }
-
-      // Fallback: Check localStorage for demo users
+      // Go straight to localStorage for immediate login
+      // Skip Supabase for demo presentation
       const users = JSON.parse(localStorage.getItem('demo_users') || '[]');
       console.log('Available demo users:', users.map((u: any) => ({ username: u.username, role: u.role })));
       

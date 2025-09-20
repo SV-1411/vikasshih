@@ -15,11 +15,13 @@ import {
 import { classroomApi } from '../lib/educational-api';
 import { localBus, demoEvents } from '../lib/local-bus';
 import type { Classroom, Profile } from '../types';
+import { safeLocalStorage, safeCopyToClipboard, safeNavigate } from '../lib/error-utils';
 import Chat from './Chat';
 import Polls from './Polls';
 import Quizzes from './QuizzesNew';
 import LiveSlidesHost from './LiveSlidesHost';
 import LiveSlidesViewer from './LiveSlidesViewer';
+import LiveSlidesEnhanced from './LiveSlidesEnhanced';
 import QuickMeaning from './QuickMeaning';
 import PomodoroFocus from './PomodoroFocus';
 // import CreateClassroomModal from './CreateClassroomModal';
@@ -46,10 +48,10 @@ const CreateClassroomModal = ({ onClose, onSubmit }: { onClose: () => void; onSu
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-gray-100">
-        <div className="p-8">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-gray-100 h-screen md:h-auto">
+        <div className="p-6 md:p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Create Classroom</h2>
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5 h-full">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Classroom Name</label>
               <input
@@ -81,18 +83,18 @@ const CreateClassroomModal = ({ onClose, onSubmit }: { onClose: () => void; onSu
                 rows={3}
               />
             </div>
-            <div className="flex space-x-3 pt-4">
+            <div className="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0 pt-4">
               <button 
                 type="button" 
                 onClick={onClose} 
-                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                className="flex-1 w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
               >
                 Cancel
               </button>
               <button 
                 type="submit" 
                 disabled={loading} 
-                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium"
+                className="flex-1 w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium"
               >
                 {loading ? 'Creating...' : 'Create Classroom'}
               </button>
@@ -124,7 +126,7 @@ const JoinClassroomModal = ({ onClose, onSubmit }: { onClose: () => void; onSubm
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-gray-100">
-        <div className="p-8">
+        <div className="p-6 md:p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Join Classroom</h2>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
@@ -138,18 +140,18 @@ const JoinClassroomModal = ({ onClose, onSubmit }: { onClose: () => void; onSubm
                 required
               />
             </div>
-            <div className="flex space-x-3 pt-4">
+            <div className="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0 pt-4">
               <button 
                 type="button" 
                 onClick={onClose} 
-                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                className="flex-1 w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
               >
                 Cancel
               </button>
               <button 
                 type="submit" 
                 disabled={loading || !code} 
-                className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors font-medium"
+                className="flex-1 w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors font-medium"
               >
                 {loading ? 'Joining...' : 'Join Classroom'}
               </button>
@@ -164,8 +166,8 @@ const JoinClassroomModal = ({ onClose, onSubmit }: { onClose: () => void; onSubm
 const ClassroomDetails = ({ classroom, currentUser, onBack }: { classroom: any; currentUser: any; onBack: () => void }) => {
   const [tab, setTab] = useState<'chat' | 'polls' | 'quizzes' | 'live' | 'dictionary' | 'focus'>('chat');
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-        <div className="w-72 bg-white border-r border-gray-200 shadow-sm">
+    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
+        <div className="w-full md:w-72 bg-white border-r border-gray-200 shadow-sm">
           <div className="p-6 border-b border-gray-200">
             <button 
               onClick={onBack} 
@@ -247,7 +249,7 @@ const ClassroomDetails = ({ classroom, currentUser, onBack }: { classroom: any; 
           </nav>
         </div>
         <div className="flex-1 bg-white">
-          <div className="border-b border-gray-200 bg-white px-8 py-6">
+          <div className="border-b border-gray-200 bg-white px-4 md:px-8 py-6">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{classroom.name}</h1>
             <div className="flex items-center space-x-4 text-sm text-gray-600">
               <span>Classroom Code: <span className="font-mono font-medium">{classroom.code}</span></span>
@@ -258,20 +260,20 @@ const ClassroomDetails = ({ classroom, currentUser, onBack }: { classroom: any; 
               )}
             </div>
           </div>
-          <div className="p-8">
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm h-[calc(100vh-280px)]">
+          <div className="p-4 md:p-8">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm min-h-[60vh] md:h-[calc(100vh-280px)]">
               {tab==='chat' && <Chat classroom={classroom} currentUser={currentUser} />}
               {tab==='polls' && <Polls classroom={classroom} currentUser={currentUser} />}
               {tab==='quizzes' && <Quizzes classroom={classroom} currentUser={currentUser} />}
               {tab==='live' && (
-                currentUser.role === 'teacher' ? (
-                  <LiveSlidesHost classroom={classroom} currentUser={currentUser} />
-                ) : (
-                  <LiveSlidesViewer classroom={classroom} />
-                )
+                <LiveSlidesEnhanced 
+                  classroom={classroom} 
+                  currentUser={currentUser} 
+                  isHost={currentUser.role === 'teacher'}
+                />
               )}
               {tab==='dictionary' && (
-                <div className="p-8">
+                <div className="p-4 md:p-8">
                   <div className="max-w-2xl mx-auto">
                     <div className="text-center mb-8">
                       <h2 className="text-2xl font-bold text-gray-900 mb-3">Instant Dictionary</h2>
@@ -307,11 +309,13 @@ const ClassroomDashboard: React.FC<ClassroomDashboardProps> = ({ currentUser, on
   const handleLogoutClick = () => {
     try {
       if (onLogout) onLogout();
+    } catch (error) {
+      console.error('Logout callback failed:', error);
     } finally {
       // Fallback to ensure logout in demo mode
-      localStorage.removeItem('demo_current_user');
-      localStorage.removeItem('demo_auth_token');
-      window.location.replace('/');
+      safeLocalStorage.removeItem('demo_current_user');
+      safeLocalStorage.removeItem('demo_auth_token');
+      safeNavigate('/', '/');
     }
   };
   console.log('🎓 ClassroomDashboard component rendered with user:', currentUser);
@@ -362,12 +366,20 @@ const ClassroomDashboard: React.FC<ClassroomDashboardProps> = ({ currentUser, on
   };
 
   const handleCreateClassroom = async (classroomData: any) => {
-    const result = await classroomApi.create(classroomData);
-    if (result.data) {
-      setClassrooms(prev => [...prev, result.data!]);
-      setShowCreateModal(false);
+    try {
+      const result = await classroomApi.create(classroomData);
+      if (result.data) {
+        setClassrooms(prev => [...prev, result.data!]);
+        setShowCreateModal(false);
+      } else if (result.error) {
+        setError(result.error);
+      }
+      return result;
+    } catch (err: any) {
+      console.error('Create classroom error:', err);
+      setError(err.message || 'Failed to create classroom');
+      return { error: err.message };
     }
-    return result;
   };
 
   const handleJoinClassroom = async (code: string) => {
@@ -395,12 +407,10 @@ const ClassroomDashboard: React.FC<ClassroomDashboardProps> = ({ currentUser, on
   };
 
   const copyClassroomCode = async (code: string) => {
-    try {
-      await navigator.clipboard.writeText(code);
+    const success = await safeCopyToClipboard(code);
+    if (success) {
       setCopiedCode(code);
       setTimeout(() => setCopiedCode(null), 2000);
-    } catch (err) {
-      console.error('Failed to copy code:', err);
     }
   };
 
@@ -430,9 +440,9 @@ const ClassroomDashboard: React.FC<ClassroomDashboardProps> = ({ currentUser, on
       {/* Header */}
       <div className="bg-white shadow-lg border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-8">
-            <div className="flex items-center justify-between">
-              <div>
+          <div className="py-6 sm:py-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="min-w-0">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">My Classrooms</h1>
                 <p className="text-lg text-gray-600">
                   {currentUser.role === 'teacher' 
@@ -441,11 +451,11 @@ const ClassroomDashboard: React.FC<ClassroomDashboardProps> = ({ currentUser, on
                   }
                 </p>
               </div>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-stretch md:items-center flex-wrap gap-3">
                 {currentUser.role === 'teacher' && (
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+                    className="flex items-center justify-center px-5 sm:px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium w-full sm:w-auto"
                   >
                     <Plus className="w-5 h-5 mr-2" />
                     Create Classroom
@@ -454,7 +464,7 @@ const ClassroomDashboard: React.FC<ClassroomDashboardProps> = ({ currentUser, on
                 {currentUser.role === 'student' && (
                   <button
                     onClick={() => setShowJoinModal(true)}
-                    className="flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+                    className="flex items-center justify-center px-5 sm:px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium w-full sm:w-auto"
                   >
                     <UserPlus className="w-5 h-5 mr-2" />
                     Join Classroom
@@ -463,7 +473,7 @@ const ClassroomDashboard: React.FC<ClassroomDashboardProps> = ({ currentUser, on
                 <button
                   type="button"
                   onClick={handleLogoutClick}
-                  className="px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200 shadow-md font-medium"
+                  className="px-4 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all duration-200 shadow-md font-medium w-full sm:w-auto"
                 >
                   Logout
                 </button>
@@ -484,7 +494,7 @@ const ClassroomDashboard: React.FC<ClassroomDashboardProps> = ({ currentUser, on
         {classrooms.length === 0 ? (
           <div className="space-y-8">
             {/* Quick Dictionary Access */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 md:p-8">
               <div className="text-center mb-6">
                 <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <HelpCircle className="w-8 h-8 text-purple-600" />
@@ -547,20 +557,20 @@ const ClassroomDashboard: React.FC<ClassroomDashboardProps> = ({ currentUser, on
             {/* Classrooms Grid */}
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Classrooms</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
             {classrooms.map(classroom => (
               <div
                 key={classroom.id}
                 className="group bg-white rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:border-blue-200 transition-all duration-300 cursor-pointer overflow-hidden"
                 onClick={() => setSelectedClassroom(classroom)}
               >
-                <div className="p-8">
+                <div className="p-6 md:p-8">
                   <div className="flex items-center justify-between mb-6">
                     <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center group-hover:from-blue-200 group-hover:to-indigo-200 transition-colors">
                       <BookOpen className="w-8 h-8 text-blue-600" />
                     </div>
                     <div className="flex items-center space-x-3">
-                      <span className="px-3 py-2 bg-gray-100 text-gray-800 text-sm font-mono rounded-lg border">
+                      <span className="px-3 py-2 bg-gray-100 text-gray-800 text-xs sm:text-sm font-mono rounded-lg border">
                         {classroom.code}
                       </span>
                       <button
@@ -580,7 +590,7 @@ const ClassroomDashboard: React.FC<ClassroomDashboardProps> = ({ currentUser, on
                     </div>
                   </div>
 
-                  <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">{classroom.name}</h3>
+                  <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">{classroom.name}</h3>
                   
                   {classroom.description && (
                     <p className="text-gray-600 text-sm mb-6 line-clamp-2 leading-relaxed">{classroom.description}</p>
@@ -622,7 +632,7 @@ const ClassroomDashboard: React.FC<ClassroomDashboardProps> = ({ currentUser, on
                     </div>
                   </div>
 
-                  <div className="mt-8 pt-6 border-t border-gray-100">
+                  <div className="mt-6 md:mt-8 pt-6 border-t border-gray-100">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-6">
                         <div className="flex items-center text-gray-500">

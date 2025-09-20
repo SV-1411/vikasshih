@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import LandingPage from './components/LandingPage';
 import AboutPage from './components/AboutPage';
@@ -15,12 +16,14 @@ import CollegeLogin from './components/CollegeLogin';
 import UserRegistration from './components/UserRegistration';
 import CollegeDashboard from './components/CollegeDashboard';
 import ClassroomDashboard from './components/ClassroomDashboard';
+import ErrorBoundary from './components/ErrorBoundary';
 import { auth } from './lib/auth';
 import { db } from './lib/database';
 import { userApi } from './lib/educational-api';
 import { supabase } from './lib/supabase';
 import { User, Profile, College } from './types';
 import { DEMO_MODE } from './lib/config';
+import { initializeDemoData } from './lib/init-demo-data';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -119,6 +122,18 @@ function App() {
     return () => {
       subscription?.unsubscribe();
     };
+  }, []);
+
+  useEffect(() => {
+    console.log('🚀 App initializing...');
+    
+    // Initialize demo data if in demo mode
+    if (DEMO_MODE) {
+      initializeDemoData();
+    }
+    
+    // Initialize app
+    initializeApp();
   }, []);
 
   const initializeApp = async () => {
@@ -443,138 +458,140 @@ function App() {
   });
 
   return (
-    <Routes>
-      {/* Educational Platform Routes */}
-      {appMode === 'educational' && profile ? (
-        <>
-          {profile.role === 'admin' && college ? (
+    <ErrorBoundary>
+        <Routes>
+          {/* Educational Platform Routes */}
+          {appMode === 'educational' && profile ? (
             <>
-              {console.log('🏫 Rendering college dashboard routes for admin with college')}
-              <Route path="/college-dashboard" element={
-                <CollegeDashboard college={college} currentUser={profile} onLogout={handleLogout} />
-              } />
-              <Route path="*" element={<Navigate to="/college-dashboard" />} />
+              {profile.role === 'admin' && college ? (
+                <>
+                  {console.log('🏫 Rendering college dashboard routes for admin with college')}
+                  <Route path="/college-dashboard" element={
+                    <CollegeDashboard college={college} currentUser={profile} onLogout={handleLogout} />
+                  } />
+                  <Route path="*" element={<Navigate to="/college-dashboard" />} />
+                </>
+              ) : profile.role === 'admin' && !college ? (
+                <>
+                  {console.log('⏳ Admin without college - showing loading or redirect to auth')}
+                  <Route path="*" element={<Navigate to="/college-login" />} />
+                </>
+              ) : (
+                <>
+                  {console.log('🎓 Rendering classroom dashboard routes for non-admin user')}
+                  <Route path="/classrooms" element={
+                    <ClassroomDashboard currentUser={profile} onLogout={handleLogout} />
+                  } />
+                  <Route path="*" element={<Navigate to="/classrooms" />} />
+                </>
+              )}
             </>
-          ) : profile.role === 'admin' && !college ? (
+          ) : appMode === 'educational' && !profile ? (
             <>
-              {console.log('⏳ Admin without college - showing loading or redirect to auth')}
-              <Route path="*" element={<Navigate to="/college-login" />} />
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/register-college" element={
+                <CollegeRegistration 
+                  onSuccess={handleCollegeRegistrationSuccess}
+                  onBack={() => window.location.href = '/'}
+                />
+              } />
+              <Route path="/college-login" element={
+                <CollegeLogin 
+                  onSuccess={handleEducationalAuthSuccess}
+                  onBack={() => window.location.href = '/'}
+                />
+              } />
+              <Route path="/register-user" element={
+                <UserRegistration 
+                  onSuccess={handleEducationalAuthSuccess}
+                  onBack={() => window.location.href = '/'}
+                />
+              } />
+              <Route path="/user-login" element={
+                <UserLogin 
+                  onSuccess={handleEducationalAuthSuccess}
+                  onBack={() => window.location.href = '/'}
+                />
+              } />
+              <Route path="*" element={<Navigate to="/" />} />
+            </>
+          ) : 
+          
+          /* Legacy Routes */
+          user ? (
+            <>
+              <Route path="/dashboard" element={
+                <>
+                  {user.role === 'student' && <StudentDashboard onLogout={handleLogout} />}
+                  {user.role === 'teacher' && <TeacherDashboard onLogout={handleLogout} />}
+                  {user.role === 'admin' && <AdminDashboard onLogout={handleLogout} />}
+                </>
+              } />
+              <Route path="*" element={<Navigate to="/dashboard" />} />
             </>
           ) : (
             <>
-              {console.log('🎓 Rendering classroom dashboard routes for non-admin user')}
-              <Route path="/classrooms" element={
-                <ClassroomDashboard currentUser={profile} onLogout={handleLogout} />
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/login" element={<LoginPage onAuthSuccess={handleAuthSuccess} />} />
+              <Route path="/signup" element={<SignupPage onAuthSuccess={handleAuthSuccess} />} />
+              <Route path="/register-college" element={
+                <CollegeRegistration 
+                  onSuccess={handleCollegeRegistrationSuccess}
+                  onBack={() => window.location.href = '/'}
+                />
               } />
-              <Route path="*" element={<Navigate to="/classrooms" />} />
+              <Route path="/college-login" element={
+                <CollegeLogin 
+                  onSuccess={handleEducationalAuthSuccess}
+                  onBack={() => window.location.href = '/'}
+                />
+              } />
+              <Route path="/register-user" element={
+                <UserRegistration 
+                  onSuccess={handleEducationalAuthSuccess}
+                  onBack={() => window.location.href = '/'}
+                />
+              } />
+              <Route path="/user-login" element={
+                <UserLogin 
+                  onSuccess={handleEducationalAuthSuccess}
+                  onBack={() => window.location.href = '/'}
+                />
+              } />
+              <Route path="/debug" element={
+                <div className="p-8">
+                  <h1 className="text-2xl font-bold mb-4">Debug Info</h1>
+                  <div className="space-y-4">
+                    <div>
+                      <strong>App Mode:</strong> {appMode}
+                    </div>
+                    <div>
+                      <strong>Profile:</strong> {profile ? JSON.stringify(profile, null, 2) : 'null'}
+                    </div>
+                    <div>
+                      <strong>College:</strong> {college ? JSON.stringify(college, null, 2) : 'null'}
+                    </div>
+                    <div>
+                      <strong>localStorage demo_current_user:</strong> 
+                      <pre>{localStorage.getItem('demo_current_user') || 'null'}</pre>
+                    </div>
+                    <div>
+                      <strong>localStorage demo_auth_token:</strong> 
+                      <pre>{localStorage.getItem('demo_auth_token') || 'null'}</pre>
+                    </div>
+                    <div>
+                      <strong>localStorage demo_colleges:</strong> 
+                      <pre>{localStorage.getItem('demo_colleges') || 'null'}</pre>
+                    </div>
+                  </div>
+                </div>
+              } />
+              <Route path="*" element={<Navigate to="/" />} />
             </>
           )}
-        </>
-      ) : appMode === 'educational' && !profile ? (
-        <>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/register-college" element={
-            <CollegeRegistration 
-              onSuccess={handleCollegeRegistrationSuccess}
-              onBack={() => window.location.href = '/'}
-            />
-          } />
-          <Route path="/college-login" element={
-            <CollegeLogin 
-              onSuccess={handleEducationalAuthSuccess}
-              onBack={() => window.location.href = '/'}
-            />
-          } />
-          <Route path="/register-user" element={
-            <UserRegistration 
-              onSuccess={handleEducationalAuthSuccess}
-              onBack={() => window.location.href = '/'}
-            />
-          } />
-          <Route path="/user-login" element={
-            <UserLogin 
-              onSuccess={handleEducationalAuthSuccess}
-              onBack={() => window.location.href = '/'}
-            />
-          } />
-          <Route path="*" element={<Navigate to="/" />} />
-        </>
-      ) : 
-      
-      /* Legacy Routes */
-      user ? (
-        <>
-          <Route path="/dashboard" element={
-            <>
-              {user.role === 'student' && <StudentDashboard onLogout={handleLogout} />}
-              {user.role === 'teacher' && <TeacherDashboard onLogout={handleLogout} />}
-              {user.role === 'admin' && <AdminDashboard onLogout={handleLogout} />}
-            </>
-          } />
-          <Route path="*" element={<Navigate to="/dashboard" />} />
-        </>
-      ) : (
-        <>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/login" element={<LoginPage onAuthSuccess={handleAuthSuccess} />} />
-          <Route path="/signup" element={<SignupPage onAuthSuccess={handleAuthSuccess} />} />
-          <Route path="/register-college" element={
-            <CollegeRegistration 
-              onSuccess={handleCollegeRegistrationSuccess}
-              onBack={() => window.location.href = '/'}
-            />
-          } />
-          <Route path="/college-login" element={
-            <CollegeLogin 
-              onSuccess={handleEducationalAuthSuccess}
-              onBack={() => window.location.href = '/'}
-            />
-          } />
-          <Route path="/register-user" element={
-            <UserRegistration 
-              onSuccess={handleEducationalAuthSuccess}
-              onBack={() => window.location.href = '/'}
-            />
-          } />
-          <Route path="/user-login" element={
-            <UserLogin 
-              onSuccess={handleEducationalAuthSuccess}
-              onBack={() => window.location.href = '/'}
-            />
-          } />
-          <Route path="/debug" element={
-            <div className="p-8">
-              <h1 className="text-2xl font-bold mb-4">Debug Info</h1>
-              <div className="space-y-4">
-                <div>
-                  <strong>App Mode:</strong> {appMode}
-                </div>
-                <div>
-                  <strong>Profile:</strong> {profile ? JSON.stringify(profile, null, 2) : 'null'}
-                </div>
-                <div>
-                  <strong>College:</strong> {college ? JSON.stringify(college, null, 2) : 'null'}
-                </div>
-                <div>
-                  <strong>localStorage demo_current_user:</strong> 
-                  <pre>{localStorage.getItem('demo_current_user') || 'null'}</pre>
-                </div>
-                <div>
-                  <strong>localStorage demo_auth_token:</strong> 
-                  <pre>{localStorage.getItem('demo_auth_token') || 'null'}</pre>
-                </div>
-                <div>
-                  <strong>localStorage demo_colleges:</strong> 
-                  <pre>{localStorage.getItem('demo_colleges') || 'null'}</pre>
-                </div>
-              </div>
-            </div>
-          } />
-          <Route path="*" element={<Navigate to="/" />} />
-        </>
-      )}
-    </Routes>
+        </Routes>
+    </ErrorBoundary>
   );
 }
 

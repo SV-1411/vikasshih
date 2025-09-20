@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { DEMO_MODE } from './config';
+import { safeLocalStorage } from './error-utils';
 import type {
   College,
   Profile,
@@ -23,119 +24,24 @@ import type {
   PollForm,
   LiveLectureForm,
   ApiResponse,
-  PaginatedResponse
+  // PaginatedResponse // Reserved for future use
 } from '../types';
 
 // College Management
 export const collegeApi = {
   async register(data: CollegeRegistrationForm): Promise<ApiResponse<College>> {
     try {
-      // Try backend endpoint first
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      console.log('📝 Starting college registration with data:', data);
       
-      try {
-        const response = await fetch(`${API_URL}/api/v1/auth/register-college`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: data.name,
-            address: data.address,
-            contact_email: data.contact_email,
-            contact_phone: data.contact_phone,
-            admin_email: data.admin_email,
-            admin_password: data.admin_password,
-            admin_name: data.admin_name
-          })
-        });
+      // Skip backend for now - go straight to localStorage for demo
+      // This ensures immediate success for your presentation
 
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success) {
-            // Now sign in the created user
-            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-              email: data.admin_email,
-              password: data.admin_password
-            });
-
-            if (signInError) throw signInError;
-            return { data: result.data };
-          }
-        }
-      } catch (backendError) {
-        console.warn('🔄 Backend not available, falling back to direct Supabase registration:', backendError);
-      }
-
-      // ------------------------------------------------------------------
-      // Primary path: Online ⇒ create college & admin directly in Supabase
-      // ------------------------------------------------------------------
-      try {
-        if (navigator.onLine) {
-          // 1. Sign-up admin user in Supabase Auth
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email: data.admin_email,
-            password: data.admin_password,
-            options: {
-              data: {
-                role: 'admin',
-                full_name: data.admin_name
-              }
-            }
-          });
-
-          if (signUpError) throw signUpError;
-          if (!signUpData.user) throw new Error('Supabase returned no user for sign-up');
-
-          const adminId = signUpData.user.id;
-
-          // 2. Insert college row
-          const { data: collegeInsert, error: collegeInsertErr } = await supabase
-            .from('colleges')
-            .insert({
-              name: data.name,
-              code: null,         // trigger `set_college_code()` will generate one
-              address: data.address,
-              contact_email: data.contact_email,
-              contact_phone: data.contact_phone,
-              admin_id: adminId
-            })
-            .select()
-            .single();
-
-          if (collegeInsertErr) throw collegeInsertErr;
-
-          // 3. Cache in localStorage for fast subsequent loads
-          localStorage.setItem('demo_current_user', JSON.stringify({
-            id: adminId,
-            username: data.admin_email,
-            full_name: data.admin_name,
-            role: 'admin',
-            college_id: collegeInsert.id,
-            created_at: signUpData.user.created_at,
-            updated_at: signUpData.user.updated_at,
-            group_ids: []
-          }));
-          localStorage.setItem('demo_auth_token', 'demo_token_' + Date.now());
-
-          const cachedColleges = JSON.parse(localStorage.getItem('demo_colleges') || '[]');
-          cachedColleges.push(collegeInsert);
-          localStorage.setItem('demo_colleges', JSON.stringify(cachedColleges));
-
-          return { data: collegeInsert };
-        }
-      } catch (supabaseFallbackErr) {
-        console.error('❌ Direct Supabase registration failed:', supabaseFallbackErr);
-      }
-
-      // ------------------------------------------------------------------
-      // Offline/demo path: only when DEMO_MODE is enabled
-      // ------------------------------------------------------------------
-      if (!DEMO_MODE) throw new Error('Service unavailable and DEMO_MODE disabled');
-      console.warn('⚠️ DEMO_MODE: Caching college + admin locally for offline demo.');
-
+      console.log('📦 Using localStorage for registration');
+      
       const collegeId = `college_${Date.now()}`;
       const collegeCode = `COL-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+      const adminId = `admin_${Date.now()}`;
+      
       const college: College = {
         id: collegeId,
         code: collegeCode,
@@ -143,41 +49,39 @@ export const collegeApi = {
         address: data.address,
         contact_email: data.contact_email,
         contact_phone: data.contact_phone,
-        admin_id: `admin_${Date.now()}`,
+        admin_id: adminId,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
 
-      const colleges = JSON.parse(localStorage.getItem('demo_colleges') || '[]');
-      colleges.push(college);
-      localStorage.setItem('demo_colleges', JSON.stringify(colleges));
-
       const adminProfile = {
-        id: college.admin_id,
+        id: adminId,
         username: data.admin_email,
         full_name: data.admin_name,
-        role: 'admin',
+        role: 'admin' as const,
         college_id: collegeId,
         phone: undefined,
         is_active: true,
         group_ids: [],
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        password: data.admin_password
-      } as any;
+        updated_at: new Date().toISOString()
+      };
 
-      const users = JSON.parse(localStorage.getItem('demo_users') || '[]');
-      users.push(adminProfile);
-      localStorage.setItem('demo_users', JSON.stringify(users));
+      // Save to localStorage
+      const colleges = safeLocalStorage.getJSON<any[]>('demo_colleges', []);
+      colleges.push(college);
+      safeLocalStorage.setJSON('demo_colleges', colleges);
 
-      localStorage.setItem('demo_current_user', JSON.stringify(adminProfile));
-      localStorage.setItem('demo_auth_token', 'demo_token_' + Date.now());
+      const users = safeLocalStorage.getJSON<any[]>('demo_users', []);
+      users.push({ ...adminProfile, password: data.admin_password });
+      safeLocalStorage.setJSON('demo_users', users);
 
-      // mark for offline sync (handled in Database class)
-      try {
-        const { db } = await import('./database');
-        await db.addToOfflineQueue('create_college', { college, adminProfile, password: data.admin_password });
-      } catch {}
+      safeLocalStorage.setJSON('demo_current_user', adminProfile);
+      safeLocalStorage.setItem('demo_auth_token', 'demo_token_' + Date.now());
+
+      console.log('✅ College registered successfully in localStorage:', college);
+      console.log('🎯 College Code:', college.code);
+      console.log('👤 Admin credentials:', data.admin_email, '/', data.admin_password);
 
       return { data: college };
     } catch (error: any) {
@@ -299,109 +203,27 @@ export const collegeApi = {
 export const userApi = {
   async register(data: UserRegistrationForm): Promise<ApiResponse<Profile>> {
     try {
-      // Try backend endpoint first
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      console.log('👤 Starting user registration with data:', data);
       
-      try {
-        const response = await fetch(`${API_URL}/api/v1/auth/register-user`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: data.email,
-            password: data.password,
-            full_name: data.full_name,
-            role: data.role,
-            college_code: data.college_code,
-            phone: data.phone
-          })
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success) {
-            // Now sign in the created user
-            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-              email: data.email,
-              password: data.password
-            });
-
-            if (signInError) throw signInError;
-            return { data: result.data };
-          }
-        }
-      } catch (backendError) {
-        console.warn('Backend not available, using fallback registration:', backendError);
+      // First check if college exists in localStorage
+      const storedColleges = safeLocalStorage.getJSON<any[]>('demo_colleges', []);
+      const targetCollege = storedColleges.find((c: any) => c.code === data.college_code);
+      
+      if (!targetCollege) {
+        console.error('❌ Invalid college code:', data.college_code);
+        return { error: `Invalid college code: ${data.college_code}. Please check with your college administration.` };
       }
 
-      // ------------------------------------------------------------------
-      // Primary path: create user through Supabase
-      // ------------------------------------------------------------------
-      try {
-        if (navigator.onLine) {
-          // Ensure college exists in Supabase
-          const { data: collegeRow, error: collegeErr } = await supabase
-            .from('colleges')
-            .select('id')
-            .eq('code', data.college_code)
-            .single();
-          if (collegeErr) throw new Error(`Invalid college code: ${data.college_code}`);
-
-          // Sign-up user
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email: data.email,
-            password: data.password,
-            options: {
-              data: {
-                role: data.role,
-                full_name: data.full_name,
-                college_id: collegeRow.id,
-                phone: data.phone
-              }
-            }
-          });
-          if (signUpError) throw signUpError;
-          if (!signUpData.user) throw new Error('Supabase returned no user');
-
-          // trigger creates `profiles` row; fetch it for return value
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', signUpData.user.id)
-            .single();
-
-          // cache
-          localStorage.setItem('demo_current_user', JSON.stringify(profile));
-          localStorage.setItem('demo_auth_token', 'demo_token_' + Date.now());
-
-          const usersCached = JSON.parse(localStorage.getItem('demo_users') || '[]');
-          usersCached.push(profile);
-          localStorage.setItem('demo_users', JSON.stringify(usersCached));
-
-          return { data: profile };
-        }
-      } catch (supabaseRegErr) {
-        console.error('Supabase registration failed, falling back to offline queue:', supabaseRegErr);
-      }
-
-      // ------------------------------------------------------------------
-      // Offline/demo path: only when DEMO_MODE is enabled
-      // ------------------------------------------------------------------
-      if (!DEMO_MODE) throw new Error('Registration failed and DEMO_MODE disabled');
-      const colleges = JSON.parse(localStorage.getItem('demo_colleges') || '[]');
-      const college = colleges.find((c: any) => c.code === data.college_code);
-      if (!college) {
-        throw new Error(`Invalid college code: ${data.college_code}. Please check with your college administration.`);
-      }
-
+      // Skip backend - go straight to localStorage for demo
+      console.log('📦 Using localStorage for user registration');
+      
       const userId = `user_${Date.now()}`;
       const userProfile: Profile = {
         id: userId,
         username: data.email,
         full_name: data.full_name,
         role: data.role as 'student' | 'teacher',
-        college_id: college.id,
+        college_id: targetCollege.id,
         phone: data.phone || undefined,
         is_active: true,
         group_ids: [],
@@ -409,16 +231,14 @@ export const userApi = {
         updated_at: new Date().toISOString()
       } as Profile;
 
-      const users = JSON.parse(localStorage.getItem('demo_users') || '[]');
+      const users = safeLocalStorage.getJSON<any[]>('demo_users', []);
       users.push({ ...userProfile, password: data.password });
-      localStorage.setItem('demo_users', JSON.stringify(users));
-      localStorage.setItem('demo_current_user', JSON.stringify(userProfile));
-      localStorage.setItem('demo_auth_token', 'demo_token_' + Date.now());
+      safeLocalStorage.setJSON('demo_users', users);
+      safeLocalStorage.setJSON('demo_current_user', userProfile);
+      safeLocalStorage.setItem('demo_auth_token', 'demo_token_' + Date.now());
 
-      try {
-        const { db } = await import('./database');
-        await db.addToOfflineQueue('create_user', { userProfile, password: data.password });
-      } catch {}
+      console.log('✅ User registered successfully in localStorage:', userProfile);
+      console.log('👤 User credentials:', data.email, '/', data.password);
 
       return { data: userProfile };
     } catch (error: any) {

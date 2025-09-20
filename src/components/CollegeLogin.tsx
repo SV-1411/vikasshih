@@ -23,43 +23,24 @@ const CollegeLogin: React.FC<CollegeLoginProps> = ({ onSuccess, onBack }) => {
     setError(null);
 
     try {
-      console.log('🔐 Starting college admin login (Supabase-first)...', formData);
+      console.log('🔐 Starting college admin login...', formData);
 
-      // Supabase sign-in
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password
-      });
-
-      if (signInError) throw signInError;
-
-      // Fetch current profile
-      const profileRes = await userApi.getCurrentProfile();
-      if (profileRes.error || !profileRes.data) throw new Error(profileRes.error || 'Profile not found');
-
-      onSuccess(profileRes.data);
-      // Navigate directly without reload
-      window.location.href = '/college-dashboard';
-      return;
-    } catch (err: any) {
-      console.warn('Supabase login error:', err);
-
-      // DEMO fallback (optional)
-      if (DEMO_MODE) {
-        try {
-          const colleges = JSON.parse(localStorage.getItem('demo_colleges') || '[]');
-          const users = JSON.parse(localStorage.getItem('demo_users') || '[]');
-          const adminUser = users.find((u: any) => u.username === formData.email && u.password === formData.password && u.role === 'admin');
-          if (adminUser) {
-            const { password, ...userProfile } = adminUser;
-            localStorage.setItem('demo_current_user', JSON.stringify(userProfile));
-            localStorage.setItem('demo_auth_token', 'demo_token_' + Date.now());
-            onSuccess(userProfile);
-            window.location.href = '/college-dashboard';
-            return;
-          }
-        } catch {}
+      // Go straight to localStorage for immediate login
+      const colleges = JSON.parse(localStorage.getItem('demo_colleges') || '[]');
+      const users = JSON.parse(localStorage.getItem('demo_users') || '[]');
+      const adminUser = users.find((u: any) => u.username === formData.email && u.password === formData.password && u.role === 'admin');
+      
+      if (adminUser) {
+        const { password, ...userProfile } = adminUser;
+        localStorage.setItem('demo_current_user', JSON.stringify(userProfile));
+        localStorage.setItem('demo_auth_token', 'demo_token_' + Date.now());
+        onSuccess(userProfile);
+        window.location.href = '/college-dashboard';
+        return;
+      } else {
+        throw new Error('Invalid email or password');
       }
+    } catch (err: any) {
       setError(err.message || 'Login failed');
     } finally {
       setLoading(false);
