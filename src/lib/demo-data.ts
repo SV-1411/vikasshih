@@ -147,6 +147,21 @@ export const DEMO_CLASSROOMS: Classroom[] = [
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     teacher: DEMO_PROFILES[1]
+  },
+  {
+    id: 'demo_classroom_3',
+    name: 'VLSI 302',
+    description: 'VLSI',
+    subject: 'VLSI',
+    code: 'VLSI303',
+    teacher_id: 'demo_teacher_1',
+    college_id: 'demo_college_1',
+    is_active: true,
+    members_count: 1,
+    member_ids: ['demo_student_1'],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    teacher: DEMO_PROFILES[1]
   }
 ];
 
